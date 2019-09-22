@@ -1,124 +1,83 @@
 import * as drs from "../src/index";
 
 /* ------------------------ */
-let msgs: string[] = [];
-
 export const log = {
-    msgs: msgs,
+    msgs: new Array<string>(),
 };
 
 /* ------------------------ */
-export class R_ extends drs.BAction {
+export class S_ implements drs.IAction<void, void> {
     execute(): void {
-        log.msgs.push("R_");
+        log.msgs.push("S_");
     }
 }
 
 /* ------------------------ */
-export class RA extends drs.BAction {
-    * getActions(): IterableIterator<drs.IAction> {
-        yield new R_();
-        yield this;
-        yield new R_();
-    }
+export class SA implements drs.IAction<void, void> {
+    protected s_ = new S_();
 
     execute(): void {
-        log.msgs.push("RA");
+        this.s_.execute();
+        log.msgs.push("SA");
+        this.s_.execute();
     }
 }
 
 /* ------------------------ */
-export class RB implements drs.BAction {
-    * getActions(): IterableIterator<drs.IAction> {
-        yield new RA();
-        yield this;
-        yield new RA();
-    }
+export class SB implements drs.IAction<void, void> {
+    protected sa = new SA();
 
     execute(): void {
-        log.msgs.push("RB");
+        this.sa.execute();
+        log.msgs.push("SB");
+        this.sa.execute();
     }
 }
 
 /* ************************ */
 
 /* ------------------------ */
-export class E_ extends drs.BAsyncAction {
-    executeAsync(): Promise<void> {
-        return new Promise((resolve) => {
-            log.msgs.push("E_");
-            resolve();
-        });
+export class A_ implements drs.IAction<void, Promise<void>> {
+    async execute(): Promise<void> {
+        log.msgs.push("A_");
     }
 }
 
 /* ------------------------ */
-export class EA extends drs.BAsyncAction {
-    * getActions(): IterableIterator<drs.IAction> {
-        yield new E_();
-        yield this;
-        yield new E_();
-    }
+export class AA implements drs.IAction<void, Promise<void>> {
+    private a_ = new A_();
 
-    executeAsync(): Promise<void> {
-        return new Promise((resolve) => {
-            log.msgs.push("EA");
-            resolve();
-        });
+    async execute(): Promise<void> {
+        await this.a_.execute();
+        log.msgs.push("AA");
+        await this.a_.execute();
     }
 }
 
 /* ------------------------ */
-export class EB extends drs.BAsyncAction {
-    * getActions(): IterableIterator<drs.IAction> {
-        yield new EA();
-        yield this;
-        yield new EA();
-    }
+export class AB implements drs.IAction<void, Promise<void>> {
+    private aa = new AA();
 
-    executeAsync(): Promise<void> {
-        return new Promise((resolve) => {
-            log.msgs.push("EB");
-            resolve();
-        });
-    }
-}
-
-/* ------------------------ */
-export class _EAsync extends drs.BAsyncAction {
-    * getActions(): IterableIterator<drs.IAction> {
-        yield new EB();
-        yield this;
-        yield new EB();
-    }
-
-    async executeAsync(): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        log.msgs.push("_EA");
-        await new Promise(resolve => setTimeout(resolve, 500));
+    async execute(): Promise<void> {
+        await this.aa.execute();
+        log.msgs.push("AB");
+        await this.aa.execute();
     }
 }
 
 /* ************************ */
-export class ParamAsyncAction extends drs.BAsyncAction {
-    public param: string = "none";
-
-    async executeAsync(): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        log.msgs.push(this.param);
-        await new Promise(resolve => setTimeout(resolve, 500));
+export class SyncAction implements drs.IAction<string, string> {
+    execute(param: string): string {
+        log.msgs.push(param);
+        return param;
     }
 }
 
-export class ParamSetRunner extends drs.BRunner<string, void> {
-    public async run(param: string): Promise<void> {
-        for (const action of this.actionsGenerator()) {
-
-            if (action instanceof ParamAsyncAction) {
-                action.param = param;
-            }
-
-            await this.executeAsync(action);
-        }
+export class AsyncAction implements drs.IAction<string, Promise<string>> {
+    async execute(param: string): Promise<string> {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        log.msgs.push(param);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        return param;
     }
 }

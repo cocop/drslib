@@ -2,174 +2,166 @@ import assert from "assert";
 import * as drs from "../src/index";
 import * as tst from "./testobj";
 
+/* ------------------------ */
+async function testAsync(
+    action: drs.IAction<void, Promise<void>>,
+    resultLog: Array<string>) {
+
+    tst.log.msgs = [];
+    await action.execute();
+    assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(resultLog));
+}
+
+async function testParamAsync<TParam, TResult>(
+    action: drs.IAction<TParam, Promise<TResult>>,
+    param: TParam,
+    result: TResult,
+    resultLog: Array<string>) {
+
+    tst.log.msgs = [];
+    assert.ok(result === await action.execute(param));
+    assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(resultLog));
+}
 
 /* ------------------------ */
-describe("Action Only", () => {
-    it("not undefined", () => {
-        tst.log.msgs = [];
-        const edr = new drs.Runner([
-            new tst.RA(),
-            new tst.RB(),
-            new tst.RA()
-        ]);
+describe("ListRunner", () => {
+    it("Sync Only", async () => await testAsync(
+        new drs.ListRunner([
+            new tst.SA(),
+            new tst.SB(),
+            new tst.SA()
+        ]),
+        [
+            "S_", "SA", "S_",
+            "S_", "SA", "S_",
+            "SB",
+            "S_", "SA", "S_",
+            "S_", "SA", "S_",
+        ]
+    ));
 
-        edr.run();
+    it("Async Only", async () => await testAsync(
+        new drs.ListRunner([
+            new tst.AA(),
+            new tst.AB(),
+            new tst.AA()
+        ]),
+        [
+            "A_", "AA", "A_",
+            "A_", "AA", "A_",
+            "AB",
+            "A_", "AA", "A_",
+            "A_", "AA", "A_",
+        ]
+    ));
 
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "R_", "RA", "R_",
-            "R_", "RA", "R_",
-            "RB",
-            "R_", "RA", "R_",
-            "R_", "RA", "R_",
-        ]));
-    });
-
-    it("undefined", () => {
-        tst.log.msgs = []
-        const edr = new drs.Runner([
-            new tst.RA(),
-            undefined,
-            new tst.RA()
-        ]);
-
-        edr.run();
-
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "R_", "RA", "R_",
-            "R_", "RA", "R_",
-        ]));
-    });
-
-    it("lr undefined", () => {
-        tst.log.msgs = []
-        const edr = new drs.Runner([
-            undefined,
-            new tst.RA(),
-            new tst.RA(),
-            undefined
-        ]);
-
-        edr.run();
-
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "R_", "RA", "R_",
-            "R_", "RA", "R_",
-        ]));
-    });
+    it("Async, Sync Mixing", async () => await testAsync(
+        new drs.ListRunner([
+            new tst.SA(),
+            new tst.AB(),
+            new tst.SA()
+        ]),
+        [
+            "S_", "SA", "S_",
+            "A_", "AA", "A_",
+            "AB",
+            "A_", "AA", "A_",
+            "S_", "SA", "S_",
+        ]
+    ));
 });
 
 /* ------------------------ */
-describe("AsyncAction Only", () => {
-    it("not undefined", async () => {
-        tst.log.msgs = []
-        const edr = new drs.AsyncRunner([
-            new tst.EA(),
-            new tst.EB(),
-            new tst.EA()
-        ]);
+describe("SyncRunner", () => {
+    it("Sync Only", async () => await testParamAsync(
+        new drs.SyncRunner(
+            [new tst.SA()],
+            new tst.SyncAction(),
+            [new tst.SA()]
+        ),
+        "xxx", "xxx",
+        [
+            "S_", "SA", "S_",
+            "xxx",
+            "S_", "SA", "S_",
+        ]
+    ));
 
-        await edr.run();
+    it("Async Only", async () => await testParamAsync(
+        new drs.SyncRunner(
+            [new tst.AA()],
+            new tst.SyncAction(),
+            [new tst.AA()]
+        ),
+        "xxx", "xxx",
+        [
+            "A_", "AA", "A_",
+            "xxx",
+            "A_", "AA", "A_",
+        ]
+    ));
 
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "E_", "EA", "E_",
-            "E_", "EA", "E_",
-            "EB",
-            "E_", "EA", "E_",
-            "E_", "EA", "E_",
-        ]));
-    });
-
-    it("undefined", async () => {
-        tst.log.msgs = []
-        const edr = new drs.AsyncRunner([
-            new tst.EA(),
-            undefined,
-            new tst.EA()
-        ]);
-
-        await edr.run();
-
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "E_", "EA", "E_",
-            "E_", "EA", "E_",
-        ]));
-    });
-
-    it("lr undefined", async () => {
-        tst.log.msgs = []
-        const edr = new drs.AsyncRunner([
-            undefined,
-            new tst.EA(),
-            new tst.EA(),
-            undefined
-        ]);
-
-        await edr.run();
-
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "E_", "EA", "E_",
-            "E_", "EA", "E_",
-        ]));
-    });
+    it("Async, Sync Mixing", async () => await testParamAsync(
+        new drs.SyncRunner(
+            [new tst.AA(), new tst.SA()],
+            new tst.SyncAction(),
+            [new tst.SA(), new tst.AA()]
+        ),
+        "xxx", "xxx",
+        [
+            "A_", "AA", "A_",
+            "S_", "SA", "S_",
+            "xxx",
+            "S_", "SA", "S_",
+            "A_", "AA", "A_",
+        ]
+    ));
 });
 
 /* ------------------------ */
-describe("Action, AsyncAction Mixing", () => {
-    it("AsyncAction, Action, AsyncAction", async () => {
-        tst.log.msgs = []
-        const edr = new drs.AsyncRunner([
-            new tst.EA(),
-            new tst.RB(),
-            new tst.EA()]);
+describe("AsyncRunner", () => {
+    it("Sync Only", async () => await testParamAsync(
+        new drs.AsyncRunner(
+            [new tst.SA()],
+            new tst.AsyncAction(),
+            [new tst.SA()]
+        ),
+        "xxx", "xxx",
+        [
+            "S_", "SA", "S_",
+            "xxx",
+            "S_", "SA", "S_",
+        ]
+    ));
 
-        await edr.run();
+    it("Async Only", async () => await testParamAsync(
+        new drs.AsyncRunner(
+            [new tst.AA()],
+            new tst.AsyncAction(),
+            [new tst.AA()]
+        ),
+        "xxx", "xxx",
+        [
+            "A_", "AA", "A_",
+            "xxx",
+            "A_", "AA", "A_",
+        ]
+    ));
 
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "E_", "EA", "E_",
-            "R_", "RA", "R_",
-            "RB",
-            "R_", "RA", "R_",
-            "E_", "EA", "E_",
-        ]));
-    });
-
-    it("Action, AsyncAction, Action", async () => {
-        tst.log.msgs = []
-        const edr = new drs.AsyncRunner([
-            new tst.RA(),
-            new tst.EB(),
-            new tst.RA()
-        ]);
-
-        await edr.run();
-
-        assert.ok(JSON.stringify(tst.log.msgs) == JSON.stringify([
-            "R_", "RA", "R_",
-            "E_", "EA", "E_",
-            "EB",
-            "E_", "EA", "E_",
-            "R_", "RA", "R_",
-        ]));
-    });
+    it("Async, Sync Mixing", async () => await testParamAsync(
+        new drs.AsyncRunner(
+            [new tst.AA(), new tst.SA()],
+            new tst.AsyncAction(),
+            [new tst.SA(), new tst.AA()]
+        ),
+        "xxx", "xxx",
+        [
+            "A_", "AA", "A_",
+            "S_", "SA", "S_",
+            "xxx",
+            "S_", "SA", "S_",
+            "A_", "AA", "A_",
+        ]
+    ));
 });
 
-/* ------------------------ */
-describe("AsyncAction Multi Run", () => {
-    it("Double", async () => {
-        tst.log.msgs = []
-        const edr = new tst.ParamSetRunner([
-            new tst.E_(),
-            () => new tst.ParamAsyncAction(),
-            new tst.E_(),
-        ]);
-
-        await Promise.all([
-            edr.run("1"),
-            edr.run("2"),
-        ]);
-
-        assert.ok("1" in tst.log.msgs);
-        assert.ok("2" in tst.log.msgs);
-        assert.ok(tst.log.msgs.filter((v) => v === "E_").length == 4);
-    });
-});
