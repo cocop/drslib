@@ -1,0 +1,24 @@
+{
+  "name": "drslib",
+  "version": "0.6.1",
+  "description": "",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "dependencies": {
+    "nodejs": "^0.0.0",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.5",
+    "@types/typescript": "^2.0.0",
+    "@types/mocha": "^5.2.7",
+    "mocha": "^6.2.0"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "rcoco",
+  "license": "Apache-2.0"
+}
