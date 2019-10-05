@@ -165,3 +165,14 @@ describe("AsyncRunner", () => {
     ));
 });
 
+describe("FreeAction", () => {
+    it("success", () => {
+        let isCall = false;
+
+        new drs.FreeAction<void, void>(() => {
+            isCall = true;
+        }).execute();
+
+        assert.ok(isCall);
+    });
+});
