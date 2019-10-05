@@ -50,7 +50,7 @@ export class FreeAction<TParam, TResult> {
         this.func = func;
     }
 
-    execute(param: TParam) {
+    execute(param: TParam): TResult {
         return this.func(param);
     }
 }
