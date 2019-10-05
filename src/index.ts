@@ -43,6 +43,18 @@ export abstract class BOrderRunner<TParam, TResult, TExecutorResult> implements 
 // class
 /* ************************ */
 
+export class FreeAction<TParam, TResult> {
+    private func: (param: TParam) => TResult;
+
+    constructor(func: (param: TParam) => TResult) {
+        this.func = func;
+    }
+
+    execute(param: TParam) {
+        return this.func(param);
+    }
+}
+
 export class ListRunner implements IAction<void, Promise<void>>{
     private list: IAction<void, void | Promise<void>>[];
 

@@ -19,6 +19,6 @@
     "build": "tsc"
   },
   "keywords": [],
-  "author": "rcoco",
+  "author": "coco",
   "license": "Apache-2.0"
 }
