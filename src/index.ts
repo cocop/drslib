@@ -43,7 +43,7 @@ export abstract class BOrderRunner<TParam, TResult, TExecutorResult> implements 
 // class
 /* ************************ */
 
-export class FreeAction<TParam, TResult> {
+export class FreeAction<TParam, TResult> implements IAction<TParam, TResult> {
     private func: (param: TParam) => TResult;
 
     constructor(func: (param: TParam) => TResult) {
