@@ -69,6 +69,20 @@ describe("ListRunner", () => {
             "S_", "SA", "S_",
         ]
     ));
+
+    it("in param", async () => await testParamAsync(
+        new drs.ListRunner([
+            new tst.SA(),
+            new tst.ParamAction(),
+            new tst.SA()
+        ]),
+        "param", undefined,
+        [
+            "S_", "SA", "S_",
+            "param",
+            "S_", "SA", "S_",
+        ]
+    ));
 });
 
 /* ------------------------ */
@@ -165,6 +179,7 @@ describe("AsyncRunner", () => {
     ));
 });
 
+/* ------------------------ */
 describe("FreeAction", () => {
     it("success", () => {
         let isCall = false;

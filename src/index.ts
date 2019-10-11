@@ -21,14 +21,14 @@ export function isIAction<TParam, TResult>(arg: any): arg is IAction<TParam, TRe
 /* ************************ */
 
 export abstract class BOrderRunner<TParam, TResult, TExecutorResult> implements IAction<TParam, TResult> {
-    protected previous: ListRunner;
+    protected previous: ListRunner<TParam>;
     protected executor: IAction<TParam, TExecutorResult>;
-    protected following: ListRunner;
+    protected following: ListRunner<TParam>;
 
     constructor(
-        previous: IAction<void, void | Promise<void>>[],
-        executor: IAction<TParam, TExecutorResult>,
-        following: IAction<void, void | Promise<void>>[]) {
+        previous: IAction<TParam | void, void | Promise<void>>[],
+        executor: IAction<TParam | TParam, TExecutorResult>,
+        following: IAction<TParam | void, void | Promise<void>>[]) {
 
         this.previous = new ListRunner(previous);
         this.executor = executor;
@@ -55,16 +55,16 @@ export class FreeAction<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
-export class ListRunner implements IAction<void, Promise<void>>{
-    private list: IAction<void, void | Promise<void>>[];
+export class ListRunner<TParam> implements IAction<TParam, Promise<void>>{
+    private list: IAction<void | TParam, void | Promise<void>>[];
 
-    constructor(list: IAction<void, void | Promise<void>>[]) {
+    constructor(list: IAction<void | TParam, void | Promise<void>>[]) {
         this.list = list;
     }
 
-    async execute(): Promise<void> {
+    async execute(param: TParam): Promise<void> {
         for (const item of this.list) {
-            const result = item.execute();
+            const result = item.execute(param);
 
             if (result instanceof Promise) {
                 await result;
@@ -75,18 +75,18 @@ export class ListRunner implements IAction<void, Promise<void>>{
 
 export class SyncRunner<TParam, TResult> extends BOrderRunner<TParam, Promise<TResult>, TResult> {
     async execute(param: TParam): Promise<TResult> {
-        await this.previous.execute();
+        await this.previous.execute(param);
         const result = this.executor.execute(param);
-        await this.following.execute();
+        await this.following.execute(param);
         return result;
     }
 }
 
 export class AsyncRunner<TParam, TResult> extends BOrderRunner<TParam, Promise<TResult>, Promise<TResult>> {
     async execute(param: TParam): Promise<TResult> {
-        await this.previous.execute();
+        await this.previous.execute(param);
         const result = await this.executor.execute(param);
-        await this.following.execute();
+        await this.following.execute(param);
         return result;
     }
 }

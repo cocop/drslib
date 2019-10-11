@@ -81,3 +81,10 @@ export class AsyncAction implements drs.IAction<string, Promise<string>> {
         return param;
     }
 }
+
+/* ************************ */
+export class ParamAction implements drs.IAction<string, void> {
+    async execute(param: string) {
+        log.msgs.push(param);
+    }
+}
