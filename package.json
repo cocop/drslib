@@ -4,9 +4,7 @@
   "description": "",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
-  "dependencies": {
-    "nodejs": "^0.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^12.7.5",
     "@types/typescript": "^2.0.0",
