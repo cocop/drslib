@@ -10,7 +10,7 @@ async function testAsync(
     }) {
 
     tst.log.msgs = [];
-    await testParam.action.execute();
+    await testParam.action.do();
     assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(testParam.resultLog));
 }
 
@@ -23,7 +23,7 @@ async function testParamAsync<TParam, TResult>(
     }) {
 
     tst.log.msgs = [];
-    assert.ok(testParam.result === await testParam.action.execute(testParam.param));
+    assert.ok(testParam.result === await testParam.action.do(testParam.param));
     assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(testParam.resultLog));
 }
 

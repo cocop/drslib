@@ -3,7 +3,7 @@
 /* ************************ */
 
 export interface IAction<TParam, TResult> {
-    execute(param: TParam): TResult;
+    do(param: TParam): TResult;
 }
 
 /**
@@ -13,7 +13,7 @@ export interface IAction<TParam, TResult> {
 export function isIAction<TParam, TResult>(arg: any): arg is IAction<TParam, TResult> {
     return arg
         && typeof arg === "object"
-        && typeof arg.execute === "function";
+        && typeof arg.do === "function";
 }
 
 /* ************************ */
@@ -27,7 +27,7 @@ export class Free<TParam, TResult> implements IAction<TParam, TResult> {
         this.func = func;
     }
 
-    execute(param: TParam): TResult {
+    do(param: TParam): TResult {
         return this.func(param);
     }
 }
@@ -46,9 +46,9 @@ export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
         this.list = list;
     }
 
-    async execute(param: TParam): Promise<void> {
+    async do(param: TParam): Promise<void> {
         for (const item of this.list) {
-            const result = item.execute(param);
+            const result = item.do(param);
 
             if (result instanceof Promise) {
                 await result;
@@ -72,14 +72,14 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
         this.following = new RunActions(following);
     }
 
-    async execute(param: TParam): Promise<TResult> {
+    async do(param: TParam): Promise<TResult> {
 
-        await this.previous.execute(param);
+        await this.previous.do(param);
 
-        const promiseOrResult = this.executing.execute(param);
+        const promiseOrResult = this.executing.do(param);
         const result = (promiseOrResult instanceof Promise) ? await promiseOrResult : promiseOrResult;
 
-        await this.following.execute(param);
+        await this.following.do(param);
         return result;
     }
 }
