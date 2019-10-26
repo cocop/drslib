@@ -8,7 +8,7 @@ export interface IAction<TParam, TResult> {
 
 /**
  * Type parameter is indistinguishable
- * @param arg instance IAction is true
+ * @param arg True if the instance implements IAction
  */
 export function isIAction<TParam, TResult>(arg: any): arg is IAction<TParam, TResult> {
     return arg
