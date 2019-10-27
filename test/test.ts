@@ -11,7 +11,15 @@ async function testAsync(
 
     tst.log.msgs = [];
     await testParam.action.do();
-    assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(testParam.resultLog));
+    const log = JSON.stringify(tst.log.msgs);
+    const rlog = JSON.stringify(testParam.resultLog);
+
+    if (log !== rlog) {
+        console.log(log);
+        console.log(rlog);
+    }
+
+    assert.ok(log === rlog);
 }
 
 async function testParamAsync<TParam, TResult>(
@@ -23,9 +31,38 @@ async function testParamAsync<TParam, TResult>(
     }) {
 
     tst.log.msgs = [];
-    assert.ok(testParam.result === await testParam.action.do(testParam.param));
-    assert.ok(JSON.stringify(tst.log.msgs) === JSON.stringify(testParam.resultLog));
+
+    const p = JSON.stringify(await testParam.action.do(testParam.param));
+    const r = JSON.stringify(testParam.result);
+
+    if (p !== r) {
+        console.log(p);
+        console.log(r);
+    }
+
+    assert.ok(p === r);
+
+    const log = JSON.stringify(tst.log.msgs);
+    const rlog = JSON.stringify(testParam.resultLog);
+
+    if (log !== rlog) {
+        console.log(log);
+        console.log(rlog);
+    }
+
+    assert.ok(log === rlog);
 }
+
+/* ------------------------ */
+describe("Free", () => {
+    it("success", async () =>
+        await testParamAsync({
+            action: new drs.Free<string, Promise<string>>(async (param) => param),
+            param: "xxx",
+            result: "xxx",
+            resultLog: []
+        }));
+});
 
 /* ------------------------ */
 describe("RunActions", () => {
@@ -209,14 +246,74 @@ describe("RunActionsOrder", () => {
         }));
 });
 
-
 /* ------------------------ */
-describe("Free", () => {
-    it("success", async () =>
+
+describe("CountRepetition", () => {
+    it("Sync", async () =>
         await testParamAsync({
-            action: new drs.Free<string, Promise<string>>(async (param) => param),
-            param: "xxx",
-            result: "xxx",
-            resultLog: []
+            action: new drs.CountRepetition(new drs.Free(() => { tst.log.msgs.push("x") })),
+            param: 3,
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+
+    it("Async", async () =>
+        await testParamAsync({
+            action: new drs.CountRepetition(new drs.Free(async () => { tst.log.msgs.push("x"); })),
+            param: 3,
+            result: undefined,
+            resultLog: ["x", "x", "x"]
         }));
 });
+
+/* ------------------------ */
+
+describe("ParamsRepetition", () => {
+    it("Sync", async () =>
+        await testParamAsync({
+            action: new drs.ParamsRepetition<string>(
+                new drs.Free((param) => { tst.log.msgs.push(param) })),
+            param: ["x", "x", "x"],
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+
+    it("Async", async () =>
+        await testParamAsync({
+            action: new drs.ParamsRepetition<string>(
+                new drs.Free((param) => { tst.log.msgs.push(param) })),
+            param: ["x", "x", "x"],
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+});
+
+/* ------------------------ */
+
+describe("ParamRepetition", () => {
+    it("Sync", async () =>
+        await testParamAsync({
+            action: new drs.ParamRepetition<string>(
+                new drs.Free((param) => { tst.log.msgs.push(param) })),
+            param: {
+                param: "x",
+                count: 3
+            },
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+
+    it("Async", async () =>
+        await testParamAsync({
+            action: new drs.ParamRepetition<string>(
+                new drs.Free((param) => { tst.log.msgs.push(param) })),
+            param: {
+                param: "x",
+                count: 3
+            },
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+});
+
+/* ------------------------ */
