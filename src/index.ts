@@ -113,7 +113,7 @@ export class ParamsRepetition<TParam> extends BOuter<[TParam], Promise<void>, TP
     }
 }
 
-type WithCount<TParam> = {
+export type WithCount<TParam> = {
     param: TParam,
     count: number
 };
