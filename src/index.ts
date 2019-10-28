@@ -126,4 +126,10 @@ export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<v
     }
 }
 
+export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, ParamPromise<boolean>> {
+    async do(param: TParam): Promise<void> {
+        while (!await async(this.inner.do(param))) { };
+    }
+}
+
 /* ------------------------ */

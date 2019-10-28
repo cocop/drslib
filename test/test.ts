@@ -281,7 +281,7 @@ describe("ParamsRepetition", () => {
     it("Async", async () =>
         await testParamAsync({
             action: new drs.ParamsRepetition<string>(
-                new drs.Free((param) => { tst.log.msgs.push(param) })),
+                new drs.Free(async (param) => { tst.log.msgs.push(param) })),
             param: ["x", "x", "x"],
             result: undefined,
             resultLog: ["x", "x", "x"]
@@ -306,11 +306,39 @@ describe("ParamRepetition", () => {
     it("Async", async () =>
         await testParamAsync({
             action: new drs.ParamRepetition<string>(
-                new drs.Free((param) => { tst.log.msgs.push(param) })),
+                new drs.Free(async (param) => { tst.log.msgs.push(param) })),
             param: {
                 param: "x",
                 count: 3
             },
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+});
+
+/* ------------------------ */
+
+describe("Repetition", () => {
+    it("Sync", async () =>
+        await testParamAsync({
+            action: new drs.Repetition<string>(
+                new drs.Free((param) => {
+                    tst.log.msgs.push(param);
+                    return tst.log.msgs.length === 3;
+                })),
+            param: "x",
+            result: undefined,
+            resultLog: ["x", "x", "x"]
+        }));
+
+    it("Async", async () =>
+        await testParamAsync({
+            action: new drs.Repetition<string>(
+                new drs.Free(async (param) => {
+                    tst.log.msgs.push(param);
+                    return tst.log.msgs.length === 3;
+                })),
+            param: "x",
             result: undefined,
             resultLog: ["x", "x", "x"]
         }));
