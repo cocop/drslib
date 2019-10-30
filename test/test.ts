@@ -32,15 +32,15 @@ async function testParamAsync<TParam, TResult>(
 
     tst.log.msgs = [];
 
-    const p = JSON.stringify(await testParam.action.do(testParam.param));
+    const rr = JSON.stringify(await testParam.action.do(testParam.param));
     const r = JSON.stringify(testParam.result);
 
-    if (p !== r) {
-        console.log(p);
+    if (rr !== r) {
+        console.log(rr);
         console.log(r);
     }
 
-    assert.ok(p === r);
+    assert.ok(rr === r);
 
     const log = JSON.stringify(tst.log.msgs);
     const rlog = JSON.stringify(testParam.resultLog);
@@ -243,6 +243,27 @@ describe("RunActionsOrder", () => {
                 "S_", "SA", "S_",
                 "A_", "AA", "A_",
             ]
+        }));
+});
+
+/* ------------------------ */
+
+describe("chain", () => {
+    it("success", async () =>
+        await testParamAsync({
+            action: new drs.Chain<void>()
+                .join(new drs.RunActions([
+                    new drs.Free(() => { }),
+                    new drs.Free(() => { }),
+                ]))
+                .join(new drs.Free(async (p) => { await p; return [1, 2, 3] }))
+                .join(new drs.Free(async (p) => (await p).join(" ") + " > "))
+                .join(new drs.Free(async (p) => (await p) + "xxx"))
+                .join(new drs.Free(async (p) => (await p) + "ppp"))
+                .create(),
+            param: undefined,
+            result: "1 2 3 > xxxppp",
+            resultLog: []
         }));
 });
 

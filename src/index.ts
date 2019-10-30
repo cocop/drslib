@@ -1,3 +1,8 @@
+/* ######################## */
+// Actions
+/* ######################## */
+
+
 /* ************************ */
 // interface
 /* ************************ */
@@ -92,6 +97,52 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
         return result;
     }
 }
+
+/* ------------------------ */
+// Chain
+/* ------------------------ */
+
+class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
+    chainActions: IAction<any, any>[];
+
+    constructor(chainActions: IAction<any, any>[]) {
+        this.chainActions = chainActions;
+    }
+
+    do(param: TParam): TResult {
+        let result: any = param;
+
+        for (const chainAction of this.chainActions) {
+            result = chainAction.do(result);
+        }
+
+        return result;
+    }
+}
+
+class ChainLink<TTopParam, TBottomResult> {
+    actions: IAction<any, any>[];
+
+    protected constructor(actions: IAction<any, any>[]) {
+        this.actions = actions;
+    }
+
+    create(): IAction<TTopParam, TBottomResult> {
+        return new RunChain(this.actions);
+    }
+
+    join<TResult>(action: IAction<TBottomResult, TResult>): ChainLink<TTopParam, TResult> {
+        this.actions.push(action);
+        return new ChainLink<TTopParam, TResult>(this.actions);
+    }
+};
+
+export class Chain<TParam> extends ChainLink<TParam, TParam> {
+    constructor() {
+        super([]);
+    }
+}
+
 
 /* ------------------------ */
 // Repetition
