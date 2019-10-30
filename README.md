@@ -24,4 +24,4 @@ npm install drslib
 ```
 
 ## License
-[Apache License 2.0](https://github.com/cocop/drslib/blob/master/README.md)
+[Apache License 2.0](https://github.com/cocop/drslib/blob/master/LICENSE)
