@@ -120,6 +120,18 @@ class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
+class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
+    async do(param: TParam): Promise<TResult> {
+        let result: any = param;
+
+        for (const chainAction of this.chainActions) {
+            result = await async(chainAction.do(result));
+        }
+
+        return result;
+    }
+}
+
 class ChainLink<TTopParam, TBottomResult> {
     actions: IAction<any, any>[];
 
@@ -135,6 +147,33 @@ class ChainLink<TTopParam, TBottomResult> {
         this.actions.push(action);
         return new ChainLink<TTopParam, TResult>(this.actions);
     }
+
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaiterChainLink<TTopParam, TResult> {
+        this.actions.push(action);
+        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+    }
+};
+
+class WaiterChainLink<TTopParam, TBottomResult> {
+    actions: IAction<any, any>[];
+
+    public constructor(actions: IAction<any, any>[]) {
+        this.actions = actions;
+    }
+
+    create(): IAction<TTopParam, Promise<TBottomResult>> {
+        return new RunChainAsync(this.actions);
+    }
+
+    join<TResult>(action: IAction<TBottomResult, TResult>): WaiterChainLink<TTopParam, TResult> {
+        this.actions.push(action);
+        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+    }
+
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaiterChainLink<TTopParam, TResult> {
+        this.actions.push(action);
+        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+    }
 };
 
 export class Chain<TParam> extends ChainLink<TParam, TParam> {
@@ -142,7 +181,6 @@ export class Chain<TParam> extends ChainLink<TParam, TParam> {
         super([]);
     }
 }
-
 
 /* ------------------------ */
 // Repetition

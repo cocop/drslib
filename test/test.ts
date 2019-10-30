@@ -249,21 +249,34 @@ describe("RunActionsOrder", () => {
 /* ------------------------ */
 
 describe("chain", () => {
-    it("success", async () =>
+    it("Sync", async () =>
         await testParamAsync({
             action: new drs.Chain<void>()
-                .join(new drs.RunActions([
-                    new drs.Free(() => { }),
-                    new drs.Free(() => { }),
-                ]))
-                .join(new drs.Free(async (p) => { await p; return [1, 2, 3] }))
-                .join(new drs.Free(async (p) => (await p).join(" ") + " > "))
-                .join(new drs.Free(async (p) => (await p) + "xxx"))
-                .join(new drs.Free(async (p) => (await p) + "ppp"))
+                .join(new drs.Free((p) => " > "))
+                .join(new drs.Free((p) => p + "xxx"))
+                .join(new drs.Free((p) => p + "ppp"))
+                .join(new drs.Free(async (p) => p))
                 .create(),
             param: undefined,
-            result: "1 2 3 > xxxppp",
+            result: " > xxxppp",
             resultLog: []
+        }));
+
+    it("Async", async () =>
+        await testParamAsync({
+            action: new drs.Chain<void>()
+                .joinWait(new drs.RunActions([
+                    new drs.Free(() => { tst.log.msgs.push("1") }),
+                    new drs.Free(() => { tst.log.msgs.push("2") }),
+                ]))
+                .join(new drs.Free(() => { tst.log.msgs.push("3") }))
+                .join(new drs.Free(() => " > "))
+                .join(new drs.Free((p) => p + "xxx"))
+                .join(new drs.Free((p) => p + "ppp"))
+                .create(),
+            param: undefined,
+            result: " > xxxppp",
+            resultLog: ["1", "2", "3"]
         }));
 });
 
