@@ -1,6 +1,6 @@
 {
   "name": "drslib",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
