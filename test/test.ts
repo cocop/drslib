@@ -1,381 +1,325 @@
 import assert from "assert";
 import * as drs from "../src/index";
-import * as tst from "./testobj";
 
 /* ------------------------ */
-async function testAsync(
-    testParam: {
-        action: drs.IAction<void, Promise<void>>,
-        resultLog: Array<string>
-    }) {
+function check<TResult>(
+    call: TResult,
+    test: TResult,
+) {
+    const cJson = JSON.stringify(call);
+    const tJson = JSON.stringify(test);
 
-    tst.log.msgs = [];
-    await testParam.action.do();
-    const log = JSON.stringify(tst.log.msgs);
-    const rlog = JSON.stringify(testParam.resultLog);
-
-    if (log !== rlog) {
-        console.log(log);
-        console.log(rlog);
+    if (cJson !== tJson) {
+        console.log(cJson);
+        console.log(tJson);
     }
 
-    assert.ok(log === rlog);
-}
-
-async function testParamAsync<TParam, TResult>(
-    testParam: {
-        action: drs.IAction<TParam, Promise<TResult>>,
-        param: TParam,
-        result: TResult,
-        resultLog: Array<string>
-    }) {
-
-    tst.log.msgs = [];
-
-    const rr = JSON.stringify(await testParam.action.do(testParam.param));
-    const r = JSON.stringify(testParam.result);
-
-    if (rr !== r) {
-        console.log(rr);
-        console.log(r);
-    }
-
-    assert.ok(rr === r);
-
-    const log = JSON.stringify(tst.log.msgs);
-    const rlog = JSON.stringify(testParam.resultLog);
-
-    if (log !== rlog) {
-        console.log(log);
-        console.log(rlog);
-    }
-
-    assert.ok(log === rlog);
+    assert.ok(cJson === tJson);
 }
 
 /* ------------------------ */
 describe("Free", () => {
-    it("success", async () =>
-        await testParamAsync({
-            action: new drs.Free<string, Promise<string>>(async (param) => param),
-            param: "xxx",
-            result: "xxx",
-            resultLog: []
-        }));
+    it("Sync", () => {
+        const action = new drs.Free((p: string) => p);
+
+        check(action.do("xxx"), "xxx");
+    });
+
+    it("Async", async () => {
+        const action = new drs.Free(async (p: string) => p);
+
+        check(await action.do("xxx"), "xxx");
+    });
 });
 
 /* ------------------------ */
 describe("RunActions", () => {
-    it("Sync Only", async () =>
-        await testAsync({
-            action: new drs.RunActions([
-                new tst.SA(),
-                new tst.SB(),
-                new tst.SA()
-            ]),
-            resultLog: [
-                "S_", "SA", "S_",
-                "S_", "SA", "S_",
-                "SB",
-                "S_", "SA", "S_",
-                "S_", "SA", "S_",
-            ]
-        }));
+    it("Sync Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActions<void>([
+            new drs.Free(() => { log.push(1) }),
+            new drs.Free(() => { log.push(2) }),
+            new drs.Free(() => { log.push(3) }),
+        ]);
 
-    it("Async Only", async () =>
-        await testAsync({
-            action: new drs.RunActions([
-                new tst.AA(),
-                new tst.AB(),
-                new tst.AA()
-            ]),
-            resultLog: [
-                "A_", "AA", "A_",
-                "A_", "AA", "A_",
-                "AB",
-                "A_", "AA", "A_",
-                "A_", "AA", "A_",
-            ]
-        }));
+        await action.do();
 
-    it("Async, Sync Mixing", async () =>
-        await testAsync({
-            action: new drs.RunActions([
-                new tst.SA(),
-                new tst.AB(),
-                new tst.SA()
-            ]),
-            resultLog: [
-                "S_", "SA", "S_",
-                "A_", "AA", "A_",
-                "AB",
-                "A_", "AA", "A_",
-                "S_", "SA", "S_",
-            ]
-        }));
+        check(log, [1, 2, 3]);
+    });
 
-    it("in param", async () =>
-        await testParamAsync({
-            action: new drs.RunActions([
-                new tst.SA(),
-                new tst.ParamAction(),
-                new tst.SA()
-            ]),
-            param: "param",
-            result: undefined,
-            resultLog: [
-                "S_", "SA", "S_",
-                "param",
-                "S_", "SA", "S_",
-            ]
-        }));
+    it("Async Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActions<void>([
+            new drs.Free(() => { log.push(1) }),
+            new drs.Free(() => { log.push(2) }),
+            new drs.Free(() => { log.push(3) }),
+        ]);
+
+        await action.do();
+
+        check(log, [1, 2, 3]);
+    });
+
+    it("Async, Sync Mixing", async () => {
+        const log: number[] = []
+        const action = new drs.RunActions<void>([
+            new drs.Free(async () => { log.push(1) }),
+            new drs.Free(() => { log.push(2) }),
+            new drs.Free(async () => { log.push(3) }),
+        ]);
+
+        await action.do();
+
+        check(log, [1, 2, 3]);
+    });
+
+    it("in param", async () => {
+        const log: number[] = []
+        const action = new drs.RunActions<number>([
+            new drs.Free(() => { log.push(1) }),
+            new drs.Free((p) => { log.push(p) }),
+            new drs.Free(() => { log.push(3) }),
+        ]);
+
+        await action.do(2);
+
+        check(log, [1, 2, 3]);
+    });
 });
 
 /* ------------------------ */
 describe("RunActionsOrder", () => {
-    it("SyncAction Sync Only", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [new tst.SA()],
-                new tst.SyncAction(),
-                [new tst.SA()]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "S_", "SA", "S_",
-                "xxx",
-                "S_", "SA", "S_",
-            ]
-        }));
+    it("SyncAction Sync Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(() => { log.push(1) })
+            ],
+            new drs.Free((p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(() => { log.push(3) })
+            ],
+        );
 
-    it("SyncAction Async Only", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [new tst.AA()],
-                new tst.SyncAction(),
-                [new tst.AA()]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "A_", "AA", "A_",
-                "xxx",
-                "A_", "AA", "A_",
-            ]
-        }));
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
+    });
 
-    it("SyncAction Async, Sync Mixing", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [
-                    new tst.AA(),
-                    new tst.SA()
-                ],
-                new tst.SyncAction(),
-                [
-                    new tst.SA(),
-                    new tst.AA()
-                ]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "A_", "AA", "A_",
-                "S_", "SA", "S_",
-                "xxx",
-                "S_", "SA", "S_",
-                "A_", "AA", "A_",
-            ]
-        }));
+    it("SyncAction Async Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(async () => { log.push(1) })
+            ],
+            new drs.Free((p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(async () => { log.push(3) })
+            ],
+        );
 
-    it("AsyncAction Sync Only", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [new tst.SA()],
-                new tst.AsyncAction(),
-                [new tst.SA()]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "S_", "SA", "S_",
-                "xxx",
-                "S_", "SA", "S_",
-            ]
-        }));
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
+    });
 
-    it("AsyncAction Async Only", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [new tst.AA()],
-                new tst.AsyncAction(),
-                [new tst.AA()]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "A_", "AA", "A_",
-                "xxx",
-                "A_", "AA", "A_",
-            ]
-        }));
+    it("SyncAction Async, Sync Mixing", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(() => { log.push(1) }),
+                new drs.Free(async () => { log.push(2) })
+            ],
+            new drs.Free((p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(async () => { log.push(4) }),
+                new drs.Free(() => { log.push(5) })
+            ],
+        );
 
-    it("AsyncAction Async, Sync Mixing", async () =>
-        await testParamAsync({
-            action: new drs.RunActionsOrder(
-                [
-                    new tst.AA(),
-                    new tst.SA()
-                ],
-                new tst.AsyncAction(),
-                [
-                    new tst.SA(),
-                    new tst.AA()
-                ]
-            ),
-            param: "xxx",
-            result: "xxx",
-            resultLog: [
-                "A_", "AA", "A_",
-                "S_", "SA", "S_",
-                "xxx",
-                "S_", "SA", "S_",
-                "A_", "AA", "A_",
-            ]
-        }));
+        check(await action.do(3), "xxx");
+        check(log, [1, 2, 3, 4, 5]);
+    });
+
+    it("AsyncAction Sync Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(() => { log.push(1) })
+            ],
+            new drs.Free(async (p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(() => { log.push(3) })
+            ],
+        );
+
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
+    });
+
+    it("AsyncAction Async Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(async () => { log.push(1) })
+            ],
+            new drs.Free(async (p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(async () => { log.push(3) })
+            ],
+        );
+
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
+    });
+
+    it("AsyncAction Async, Sync Mixing", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsOrder(
+            [
+                new drs.Free(() => { log.push(1) }),
+                new drs.Free(async () => { log.push(2) })
+            ],
+            new drs.Free(async (p: number) => { log.push(p); return "xxx"; }),
+            [
+                new drs.Free(async () => { log.push(4) }),
+                new drs.Free(() => { log.push(5) })
+            ],
+        );
+
+        check(await action.do(3), "xxx");
+        check(log, [1, 2, 3, 4, 5]);
+    });
 });
 
 /* ------------------------ */
-
 describe("chain", () => {
-    it("Sync", async () =>
-        await testParamAsync({
-            action: new drs.Chain<void>()
-                .join(new drs.Free((p) => " > "))
-                .join(new drs.Free((p) => p + "xxx"))
-                .join(new drs.Free((p) => p + "ppp"))
-                .join(new drs.Free(async (p) => p))
-                .create(),
-            param: undefined,
-            result: " > xxxppp",
-            resultLog: []
-        }));
+    it("Sync", () => {
+        const action = new drs.Chain<void>()
+            .join(new drs.Free((p) => "1"))
+            .join(new drs.Free((p) => p + " 2 "))
+            .join(new drs.Free((p) => p + "3"))
+            .create();
 
-    it("Async", async () =>
-        await testParamAsync({
-            action: new drs.Chain<void>()
-                .joinWait(new drs.RunActions([
-                    new drs.Free(() => { tst.log.msgs.push("1") }),
-                    new drs.Free(() => { tst.log.msgs.push("2") }),
-                ]))
-                .join(new drs.Free(() => { tst.log.msgs.push("3") }))
-                .join(new drs.Free(() => " > "))
-                .join(new drs.Free((p) => p + "xxx"))
-                .join(new drs.Free((p) => p + "ppp"))
-                .create(),
-            param: undefined,
-            result: " > xxxppp",
-            resultLog: ["1", "2", "3"]
-        }));
+        check(action.do(), "1 2 3");
+    });
+
+    it("Async", async () => {
+        const log: number[] = [];
+        const action = new drs.Chain<void>()
+            .joinWait(new drs.RunActions([
+                new drs.Free(() => { log.push(1) }),
+                new drs.Free(() => { log.push(2) }),
+            ]))
+            .join(new drs.Free(() => { log.push(3) }))
+            .join(new drs.Free((p) => "1"))
+            .join(new drs.Free((p) => p + " 2 "))
+            .join(new drs.Free((p) => p + "3"))
+            .create();
+
+        check(await action.do(), "1 2 3");
+        check(log, [1, 2, 3]);
+    });
 });
 
 /* ------------------------ */
-
 describe("CountRepetition", () => {
-    it("Sync", async () =>
-        await testParamAsync({
-            action: new drs.CountRepetition(new drs.Free(() => { tst.log.msgs.push("x") })),
-            param: 3,
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+    it("Sync", async () => {
+        const log: string[] = [];
+        const action = new drs.CountRepetition(new drs.Free(() => { log.push("x") }));
 
-    it("Async", async () =>
-        await testParamAsync({
-            action: new drs.CountRepetition(new drs.Free(async () => { tst.log.msgs.push("x"); })),
-            param: 3,
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+        await action.do(3);
+
+        check(log, ["x", "x", "x"]);
+    });
+
+    it("Async", async () => {
+        const log: string[] = [];
+        const action = new drs.CountRepetition(new drs.Free(async () => { log.push("x") }));
+
+        await action.do(3);
+
+        check(log, ["x", "x", "x"]);
+    });
 });
 
 /* ------------------------ */
-
 describe("ParamsRepetition", () => {
-    it("Sync", async () =>
-        await testParamAsync({
-            action: new drs.ParamsRepetition<string>(
-                new drs.Free((param) => { tst.log.msgs.push(param) })),
-            param: ["x", "x", "x"],
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+    it("Sync", async () => {
+        const log: string[] = [];
+        const action = new drs.ParamsRepetition(
+            new drs.Free((p: string) => { log.push(p) }));
 
-    it("Async", async () =>
-        await testParamAsync({
-            action: new drs.ParamsRepetition<string>(
-                new drs.Free(async (param) => { tst.log.msgs.push(param) })),
-            param: ["x", "x", "x"],
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+        await action.do(["x", "x", "x"]);
+
+        check(log, ["x", "x", "x"]);
+    });
+
+    it("Async", async () => {
+        const log: string[] = [];
+        const action = new drs.ParamsRepetition(
+            new drs.Free(async (p: string) => { log.push(p) }));
+
+        await action.do(["x", "x", "x"]);
+
+        check(log, ["x", "x", "x"]);
+    });
 });
 
 /* ------------------------ */
-
 describe("ParamRepetition", () => {
-    it("Sync", async () =>
-        await testParamAsync({
-            action: new drs.ParamRepetition<string>(
-                new drs.Free((param) => { tst.log.msgs.push(param) })),
-            param: {
-                param: "x",
-                count: 3
-            },
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+    it("Sync", async () => {
+        const log: string[] = [];
+        const action = new drs.ParamRepetition(
+            new drs.Free((p: string) => { log.push(p) }));
 
-    it("Async", async () =>
-        await testParamAsync({
-            action: new drs.ParamRepetition<string>(
-                new drs.Free(async (param) => { tst.log.msgs.push(param) })),
-            param: {
-                param: "x",
-                count: 3
-            },
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+        await action.do({
+            param: "x",
+            count: 3
+        });
+
+        check(log, ["x", "x", "x"]);
+    });
+
+    it("Async", async () => {
+        const log: string[] = [];
+        const action = new drs.ParamRepetition(
+            new drs.Free(async (p: string) => { log.push(p) }));
+
+        await action.do({
+            param: "x",
+            count: 3
+        });
+
+        check(log, ["x", "x", "x"]);
+    });
 });
 
 /* ------------------------ */
-
 describe("Repetition", () => {
-    it("Sync", async () =>
-        await testParamAsync({
-            action: new drs.Repetition<string>(
-                new drs.Free((param) => {
-                    tst.log.msgs.push(param);
-                    return tst.log.msgs.length === 3;
-                })),
-            param: "x",
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+    it("Sync", async () => {
+        const log: string[] = [];
+        const action = new drs.Repetition(
+            new drs.Free((p: string) => {
+                log.push(p);
+                return log.length === 3;
+            }));
 
-    it("Async", async () =>
-        await testParamAsync({
-            action: new drs.Repetition<string>(
-                new drs.Free(async (param) => {
-                    tst.log.msgs.push(param);
-                    return tst.log.msgs.length === 3;
-                })),
-            param: "x",
-            result: undefined,
-            resultLog: ["x", "x", "x"]
-        }));
+        await action.do("x");
+
+        check(log, ["x", "x", "x"]);
+    });
+
+    it("Async", async () => {
+        const log: string[] = [];
+        const action = new drs.Repetition(
+            new drs.Free(async (p: string) => {
+                log.push(p);
+                return log.length === 3;
+            }));
+
+        await action.do("x");
+
+        check(log, ["x", "x", "x"]);
+    });
 });
 
 /* ------------------------ */

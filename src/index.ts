@@ -61,9 +61,9 @@ export class Free<TParam, TResult> implements IAction<TParam, TResult> {
 /* ------------------------ */
 
 export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
-    private list: IAction<void | TParam, VoidPromise>[];
+    private list: IAction<TParam, VoidPromise>[];
 
-    constructor(list: IAction<void | TParam, VoidPromise>[]) {
+    constructor(list: IAction<TParam, VoidPromise>[]) {
         this.list = list;
     }
 
@@ -80,9 +80,9 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
     private following: RunActions<TParam>;
 
     constructor(
-        previous: IAction<TParam | void, VoidPromise>[],
+        previous: IAction<TParam, VoidPromise>[],
         executing: IAction<TParam, ParamPromise<TResult>>,
-        following: IAction<TParam | void, VoidPromise>[]) {
+        following: IAction<TParam, VoidPromise>[]) {
 
         this.previous = new RunActions(previous);
         this.executing = executing;
@@ -194,8 +194,8 @@ export class CountRepetition extends BOuter<number, Promise<void>, void, VoidPro
     }
 }
 
-export class ParamsRepetition<TParam> extends BOuter<[TParam], Promise<void>, TParam, VoidPromise> {
-    async do(params: [TParam]): Promise<void> {
+export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TParam, VoidPromise> {
+    async do(params: TParam[]): Promise<void> {
         for (const param of params) {
             await async(this.inner.do(param));
         }
