@@ -2,7 +2,7 @@
 
 Utility Library for Reflection Architecture
 
-[Learn more about the architecture](https://gist.github.com/cocop/953ac9e9be10d5846705c873eb67d6fd)
+[Click here for details of the architecture](https://gist.github.com/cocop/953ac9e9be10d5846705c873eb67d6fd)
 
 ```typescript
 import * as drs from "drslib";
