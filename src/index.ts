@@ -103,7 +103,7 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
 /* ------------------------ */
 
 class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
-    chainActions: IAction<any, any>[];
+    protected chainActions: IAction<any, any>[];
 
     constructor(chainActions: IAction<any, any>[]) {
         this.chainActions = chainActions;
@@ -133,7 +133,7 @@ class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
 }
 
 class ChainLink<TTopParam, TBottomResult> {
-    actions: IAction<any, any>[];
+    private actions: IAction<any, any>[];
 
     protected constructor(actions: IAction<any, any>[]) {
         this.actions = actions;
@@ -155,7 +155,7 @@ class ChainLink<TTopParam, TBottomResult> {
 };
 
 class WaiterChainLink<TTopParam, TBottomResult> {
-    actions: IAction<any, any>[];
+    private actions: IAction<any, any>[];
 
     public constructor(actions: IAction<any, any>[]) {
         this.actions = actions;
