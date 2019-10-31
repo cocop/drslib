@@ -1,7 +1,7 @@
 {
   "name": "drslib",
   "version": "0.12.0",
-  "description": "",
+  "description": "Utility Library for Reflection Architecture",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "dependencies": {},
@@ -17,7 +17,11 @@
     "prepare": "tsc",
     "build": "tsc"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cocop/drslib.git"
+  },
   "keywords": [],
-  "author": "coco",
+  "author": "coco <rmecila@gmail.com>",
   "license": "Apache-2.0"
 }
