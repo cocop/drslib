@@ -1,7 +1,7 @@
 {
   "name": "drslib",
   "description": "Utility Library for Reflection Architecture",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "author": "coco <rmecila@gmail.com>",
   "dependencies": {},
   "devDependencies": {
