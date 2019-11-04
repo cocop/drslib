@@ -9,7 +9,7 @@ I'm writing explanation so wait a days
 ```typescript
 import * as drs from "drslib";
 
-class Action implements drs.IAction<number, number> {
+class Increment implements drs.IAction<number, number> {
     do(p: number) {
         return p + 1
     }
@@ -18,7 +18,7 @@ class Action implements drs.IAction<number, number> {
 const action = new drs.Chain<number>()
     .join(new drs.Free((p: number) => p + "0"))
     .join(new drs.Free((p: string) => parseInt(p) + 1))
-    .join(new Action())
+    .join(new Increment())
     .create();
 
 const result: number = action.do(1); //result : number type 12
