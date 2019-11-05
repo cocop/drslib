@@ -148,13 +148,13 @@ class ChainLink<TTopParam, TBottomResult> {
         return new ChainLink<TTopParam, TResult>(this.actions);
     }
 
-    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaiterChainLink<TTopParam, TResult> {
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
         this.actions.push(action);
-        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+        return new WaitChainLink<TTopParam, TResult>(this.actions);
     }
 };
 
-class WaiterChainLink<TTopParam, TBottomResult> {
+class WaitChainLink<TTopParam, TBottomResult> {
     private actions: IAction<any, any>[];
 
     public constructor(actions: IAction<any, any>[]) {
@@ -165,14 +165,14 @@ class WaiterChainLink<TTopParam, TBottomResult> {
         return new RunChainAsync(this.actions);
     }
 
-    join<TResult>(action: IAction<TBottomResult, TResult>): WaiterChainLink<TTopParam, TResult> {
+    join<TResult>(action: IAction<TBottomResult, TResult>): WaitChainLink<TTopParam, TResult> {
         this.actions.push(action);
-        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+        return new WaitChainLink<TTopParam, TResult>(this.actions);
     }
 
-    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaiterChainLink<TTopParam, TResult> {
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
         this.actions.push(action);
-        return new WaiterChainLink<TTopParam, TResult>(this.actions);
+        return new WaitChainLink<TTopParam, TResult>(this.actions);
     }
 };
 
