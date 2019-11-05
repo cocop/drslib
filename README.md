@@ -5,7 +5,7 @@ Utility Library for Reflection Architecture
 ~~[Click here for details of the architecture](https://gist.github.com/cocop/953ac9e9be10d5846705c873eb67d6fd)~~  
 I'm writing explanation so wait a days
 
-
+Supported typescript
 ```typescript
 import * as drs from "drslib";
 
