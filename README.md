@@ -21,7 +21,7 @@ const action = new drs.Chain<number>()
     .join(new Increment())
     .create();
 
-const result: number = action.do(1); //result : number type 12
+const result: number = action.do(1); //result = 12
 ```
 
 
