@@ -18,15 +18,15 @@ function check<TResult>(
 }
 
 /* ------------------------ */
-describe("Call", () => {
+describe("Run", () => {
     it("Sync", () => {
-        const action = new drs.Call((p: string) => p);
+        const action = new drs.Run((p: string) => p);
 
         check(action.do("xxx"), "xxx");
     });
 
     it("Async", async () => {
-        const action = new drs.Call(async (p: string) => p);
+        const action = new drs.Run(async (p: string) => p);
 
         check(await action.do("xxx"), "xxx");
     });
@@ -37,9 +37,9 @@ describe("RunActions", () => {
     it("Sync Only", async () => {
         const log: number[] = []
         const action = new drs.RunActions<void>([
-            new drs.Call(() => { log.push(1) }),
-            new drs.Call(() => { log.push(2) }),
-            new drs.Call(() => { log.push(3) }),
+            new drs.Run(() => { log.push(1) }),
+            new drs.Run(() => { log.push(2) }),
+            new drs.Run(() => { log.push(3) }),
         ]);
 
         await action.do();
@@ -50,9 +50,9 @@ describe("RunActions", () => {
     it("Async Only", async () => {
         const log: number[] = []
         const action = new drs.RunActions<void>([
-            new drs.Call(async () => { log.push(1) }),
-            new drs.Call(async () => { log.push(2) }),
-            new drs.Call(async () => { log.push(3) }),
+            new drs.Run(async () => { log.push(1) }),
+            new drs.Run(async () => { log.push(2) }),
+            new drs.Run(async () => { log.push(3) }),
         ]);
 
         await action.do();
@@ -63,9 +63,9 @@ describe("RunActions", () => {
     it("Async, Sync Mixing", async () => {
         const log: number[] = []
         const action = new drs.RunActions<void>([
-            new drs.Call(async () => { log.push(1) }),
-            new drs.Call(() => { log.push(2) }),
-            new drs.Call(async () => { log.push(3) }),
+            new drs.Run(async () => { log.push(1) }),
+            new drs.Run(() => { log.push(2) }),
+            new drs.Run(async () => { log.push(3) }),
         ]);
 
         await action.do();
@@ -76,9 +76,9 @@ describe("RunActions", () => {
     it("in param", async () => {
         const log: number[] = []
         const action = new drs.RunActions<number>([
-            new drs.Call(() => { log.push(1) }),
-            new drs.Call((p) => { log.push(p) }),
-            new drs.Call(() => { log.push(3) }),
+            new drs.Run(() => { log.push(1) }),
+            new drs.Run((p) => { log.push(p) }),
+            new drs.Run(() => { log.push(3) }),
         ]);
 
         await action.do(2);
@@ -93,11 +93,11 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(() => { log.push(1) })
+                new drs.Run(() => { log.push(1) })
             ],
-            new drs.Call((p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run((p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(() => { log.push(3) })
+                new drs.Run(() => { log.push(3) })
             ],
         );
 
@@ -109,11 +109,11 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(async () => { log.push(1) })
+                new drs.Run(async () => { log.push(1) })
             ],
-            new drs.Call((p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run((p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(async () => { log.push(3) })
+                new drs.Run(async () => { log.push(3) })
             ],
         );
 
@@ -125,13 +125,13 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(() => { log.push(1) }),
-                new drs.Call(async () => { log.push(2) })
+                new drs.Run(() => { log.push(1) }),
+                new drs.Run(async () => { log.push(2) })
             ],
-            new drs.Call((p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run((p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(async () => { log.push(4) }),
-                new drs.Call(() => { log.push(5) })
+                new drs.Run(async () => { log.push(4) }),
+                new drs.Run(() => { log.push(5) })
             ],
         );
 
@@ -143,11 +143,11 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(() => { log.push(1) })
+                new drs.Run(() => { log.push(1) })
             ],
-            new drs.Call(async (p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(() => { log.push(3) })
+                new drs.Run(() => { log.push(3) })
             ],
         );
 
@@ -159,11 +159,11 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(async () => { log.push(1) })
+                new drs.Run(async () => { log.push(1) })
             ],
-            new drs.Call(async (p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(async () => { log.push(3) })
+                new drs.Run(async () => { log.push(3) })
             ],
         );
 
@@ -175,13 +175,13 @@ describe("RunActionsOrder", () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
             [
-                new drs.Call(() => { log.push(1) }),
-                new drs.Call(async () => { log.push(2) })
+                new drs.Run(() => { log.push(1) }),
+                new drs.Run(async () => { log.push(2) })
             ],
-            new drs.Call(async (p: number) => { log.push(p); return "xxx"; }),
+            new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
             [
-                new drs.Call(async () => { log.push(4) }),
-                new drs.Call(() => { log.push(5) })
+                new drs.Run(async () => { log.push(4) }),
+                new drs.Run(() => { log.push(5) })
             ],
         );
 
@@ -194,9 +194,9 @@ describe("RunActionsOrder", () => {
 describe("chain", () => {
     it("Sync", () => {
         const action = new drs.Chain<void>()
-            .join(new drs.Call((p) => "1"))
-            .join(new drs.Call((p) => p + " 2 "))
-            .join(new drs.Call((p) => p + "3"))
+            .join(new drs.Run((p) => "1"))
+            .join(new drs.Run((p) => p + " 2 "))
+            .join(new drs.Run((p) => p + "3"))
             .create();
 
         check(action.do(), "1 2 3");
@@ -206,13 +206,13 @@ describe("chain", () => {
         const log: number[] = [];
         const action = new drs.Chain<void>()
             .joinWait(new drs.RunActions([
-                new drs.Call(() => { log.push(1) }),
-                new drs.Call(() => { log.push(2) }),
+                new drs.Run(() => { log.push(1) }),
+                new drs.Run(() => { log.push(2) }),
             ]))
-            .join(new drs.Call(() => { log.push(3) }))
-            .join(new drs.Call((p) => "1"))
-            .join(new drs.Call((p) => p + " 2 "))
-            .join(new drs.Call((p) => p + "3"))
+            .join(new drs.Run(() => { log.push(3) }))
+            .join(new drs.Run((p) => "1"))
+            .join(new drs.Run((p) => p + " 2 "))
+            .join(new drs.Run((p) => p + "3"))
             .create();
 
         check(await action.do(), "1 2 3");
@@ -224,7 +224,7 @@ describe("chain", () => {
 describe("CountRepetition", () => {
     it("Sync", async () => {
         const log: string[] = [];
-        const action = new drs.CountRepetition(new drs.Call(() => { log.push("x") }));
+        const action = new drs.CountRepetition(new drs.Run(() => { log.push("x") }));
 
         await action.do(3);
 
@@ -233,7 +233,7 @@ describe("CountRepetition", () => {
 
     it("Async", async () => {
         const log: string[] = [];
-        const action = new drs.CountRepetition(new drs.Call(async () => { log.push("x") }));
+        const action = new drs.CountRepetition(new drs.Run(async () => { log.push("x") }));
 
         await action.do(3);
 
@@ -246,7 +246,7 @@ describe("ParamsRepetition", () => {
     it("Sync", async () => {
         const log: string[] = [];
         const action = new drs.ParamsRepetition(
-            new drs.Call((p: string) => { log.push(p) }));
+            new drs.Run((p: string) => { log.push(p) }));
 
         await action.do(["x", "x", "x"]);
 
@@ -256,7 +256,7 @@ describe("ParamsRepetition", () => {
     it("Async", async () => {
         const log: string[] = [];
         const action = new drs.ParamsRepetition(
-            new drs.Call(async (p: string) => { log.push(p) }));
+            new drs.Run(async (p: string) => { log.push(p) }));
 
         await action.do(["x", "x", "x"]);
 
@@ -269,7 +269,7 @@ describe("ParamRepetition", () => {
     it("Sync", async () => {
         const log: string[] = [];
         const action = new drs.ParamRepetition(
-            new drs.Call((p: string) => { log.push(p) }));
+            new drs.Run((p: string) => { log.push(p) }));
 
         await action.do({
             param: "x",
@@ -282,7 +282,7 @@ describe("ParamRepetition", () => {
     it("Async", async () => {
         const log: string[] = [];
         const action = new drs.ParamRepetition(
-            new drs.Call(async (p: string) => { log.push(p) }));
+            new drs.Run(async (p: string) => { log.push(p) }));
 
         await action.do({
             param: "x",
@@ -298,7 +298,7 @@ describe("Repetition", () => {
     it("Sync", async () => {
         const log: string[] = [];
         const action = new drs.Repetition(
-            new drs.Call((p: string) => {
+            new drs.Run((p: string) => {
                 log.push(p);
                 return log.length === 3;
             }));
@@ -311,7 +311,7 @@ describe("Repetition", () => {
     it("Async", async () => {
         const log: string[] = [];
         const action = new drs.Repetition(
-            new drs.Call(async (p: string) => {
+            new drs.Run(async (p: string) => {
                 log.push(p);
                 return log.length === 3;
             }));
