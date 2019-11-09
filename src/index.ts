@@ -50,7 +50,7 @@ export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResul
 
 /* ------------------------ */
 
-export class Free<TParam, TResult> implements IAction<TParam, TResult> {
+export class Call<TParam, TResult> implements IAction<TParam, TResult> {
     private func: (param: TParam) => TResult;
 
     constructor(func: (param: TParam) => TResult) {

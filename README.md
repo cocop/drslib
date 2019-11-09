@@ -15,8 +15,8 @@ class Increment implements drs.IAction<number, number> {
 }
 
 const action = new drs.Chain<number>()
-    .join(new drs.Free((p: number) => p + "0"))
-    .join(new drs.Free((p: string) => parseInt(p) + 1))
+    .join(new drs.Call((p: number) => p + "0"))
+    .join(new drs.Call((p: string) => parseInt(p) + 1))
     .join(new Increment())
     .create();
 
