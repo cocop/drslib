@@ -50,9 +50,9 @@ describe("RunActions", () => {
     it("Async Only", async () => {
         const log: number[] = []
         const action = new drs.RunActions<void>([
-            new drs.Free(() => { log.push(1) }),
-            new drs.Free(() => { log.push(2) }),
-            new drs.Free(() => { log.push(3) }),
+            new drs.Free(async () => { log.push(1) }),
+            new drs.Free(async () => { log.push(2) }),
+            new drs.Free(async () => { log.push(3) }),
         ]);
 
         await action.do();

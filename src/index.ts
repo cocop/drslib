@@ -1,3 +1,9 @@
+/*!
+ * drslib
+ * Apache Licence 2.0
+ * https://github.com/cocop/drslib/blob/master/LICENSE
+ */
+
 /* ######################## */
 // Actions
 /* ######################## */
