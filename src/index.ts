@@ -143,18 +143,38 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
 // Chain
 /* ------------------------ */
 
-class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
-    protected chainActions: IAction<any, any>[];
+enum ChainRunStatus {
+    Async,
+    Sync,
+    Pass,
+}
 
-    constructor(chainActions: IAction<any, any>[]) {
-        this.chainActions = chainActions;
+type ChainedAction = {
+    chainRunStatus: ChainRunStatus,
+    action: IAction<any, any>
+}
+
+class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
+    protected chain: ChainedAction[];
+
+    constructor(chain: ChainedAction[]) {
+        this.chain = chain;
     }
 
     do(param: TParam): TResult {
         let result: any = param;
 
-        for (const chainAction of this.chainActions) {
-            result = chainAction.do(result);
+        for (const chainLink of this.chain) {
+            switch (chainLink.chainRunStatus) {
+                case ChainRunStatus.Async:
+                    throw new Error("Asynchronous task called in synchronous runner");
+                case ChainRunStatus.Sync:
+                    result = chainLink.action.do(result);
+                    break;
+                case ChainRunStatus.Pass:
+                    chainLink.action.do(result);
+                    break;
+            }
         }
 
         return result;
@@ -165,57 +185,96 @@ class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
     async do(param: TParam): Promise<TResult> {
         let result: any = param;
 
-        for (const chainAction of this.chainActions) {
-            result = await async(chainAction.do(result));
+        for (const chainLink of this.chain) {
+            switch (chainLink.chainRunStatus) {
+                case ChainRunStatus.Async:
+                    result = await async(chainLink.action.do(result));
+                    break;
+                case ChainRunStatus.Sync:
+                    result = chainLink.action.do(result);
+                    break;
+                case ChainRunStatus.Pass:
+                    chainLink.action.do(result);
+                    break;
+            }
         }
 
         return result;
     }
 }
 
-class ChainLink<TTopParam, TBottomResult> {
-    private actions: IAction<any, any>[];
+abstract class BChainLink<TTopParam, TBottomResult> {
+    protected chain: ChainedAction[];
 
-    protected constructor(actions: IAction<any, any>[]) {
-        this.actions = actions;
+    protected constructor(chain: ChainedAction[]) {
+        this.chain = chain;
     }
+}
 
+class ChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBottomResult> {
     create(): IAction<TTopParam, TBottomResult> {
-        return new RunChain(this.actions);
+        return new RunChain(this.chain);
     }
 
     join<TResult>(action: IAction<TBottomResult, TResult>): ChainLink<TTopParam, TResult> {
-        this.actions.push(action);
-        return new ChainLink<TTopParam, TResult>(this.actions);
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Sync,
+            action: action
+        });
+
+        return new ChainLink<TTopParam, TResult>(this.chain);
+    }
+
+    pass(action: IAction<TBottomResult, void>): ChainLink<TTopParam, TBottomResult> {
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Pass,
+            action: action
+        });
+
+        return this;
     }
 
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
-        this.actions.push(action);
-        return new WaitChainLink<TTopParam, TResult>(this.actions);
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Async,
+            action: action
+        });
+        return new WaitChainLink<TTopParam, TResult>(this.chain);
     }
-};
+}
 
-class WaitChainLink<TTopParam, TBottomResult> {
-    private actions: IAction<any, any>[];
-
-    public constructor(actions: IAction<any, any>[]) {
-        this.actions = actions;
-    }
-
+class WaitChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBottomResult> {
     create(): IAction<TTopParam, Promise<TBottomResult>> {
-        return new RunChainAsync(this.actions);
+        return new RunChainAsync(this.chain);
     }
 
     join<TResult>(action: IAction<TBottomResult, TResult>): WaitChainLink<TTopParam, TResult> {
-        this.actions.push(action);
-        return new WaitChainLink<TTopParam, TResult>(this.actions);
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Sync,
+            action: action
+        });
+
+        return new WaitChainLink<TTopParam, TResult>(this.chain);
+    }
+
+    pass(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Pass,
+            action: action
+        });
+
+        return this;
     }
 
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
-        this.actions.push(action);
-        return new WaitChainLink<TTopParam, TResult>(this.actions);
+        this.chain.push({
+            chainRunStatus: ChainRunStatus.Async,
+            action: action
+        });
+
+        return new WaitChainLink<TTopParam, TResult>(this.chain);
     }
-};
+}
 
 export class Chain<TParam> extends ChainLink<TParam, TParam> {
     constructor() {

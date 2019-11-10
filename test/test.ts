@@ -250,6 +250,53 @@ describe("chain", () => {
         check(await action.do(), "1 2 3");
         check(log, [1, 2, 3]);
     });
+
+    it("Async Param", async () => {
+        const log: number[] = [];
+        const action = new drs.Chain<void>()
+            .joinWait(new drs.RunActions([
+                new drs.Run(() => { log.push(1) }),
+                new drs.Run(() => { log.push(2) }),
+            ]))
+            .join(new drs.Run(async () => { // no wait
+                await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+                log.push(4);
+            }))
+            .joinWait(new drs.Run(async (p) => {
+                log.push(3);
+                await p;
+            }))
+            .join(new drs.Run((p) => "1"))
+            .join(new drs.Run((p) => p + " 2 "))
+            .join(new drs.Run((p) => p + "3"))
+            .create();
+
+        check(await action.do(), "1 2 3");
+        check(log, [1, 2, 3, 4]);
+    });
+
+    it("Sync pass", async () => {
+        const log: number[] = [];
+        const action = new drs.Chain<number>()
+            .pass(new drs.Run((p) => log.push(p)))
+            .join(new drs.Run((p) => p + 1))
+            .create();
+
+        check(action.do(10), 11);
+        check(log, [10]);
+    });
+
+    it("Async pass", async () => {
+        const log: number[] = [];
+        const action = new drs.Chain<number>()
+            .joinWait(new drs.Run(async (p) => p))
+            .pass(new drs.Run((p) => log.push(p)))
+            .join(new drs.Run((p) => p + 1))
+            .create();
+
+        check(await action.do(10), 11);
+        check(log, [10]);
+    });
 });
 
 /* ------------------------ */
