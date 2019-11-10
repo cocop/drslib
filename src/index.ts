@@ -60,6 +60,45 @@ export class Run<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
+/* ------------------------ */
+
+export class Get<TResult> implements IAction<void, TResult> {
+    ref: RefReader<TResult> | (() => TResult);
+
+    constructor(ref: RefReader<TResult> | (() => TResult)) {
+        this.ref = ref;
+    }
+
+    do(param: void): TResult {
+        if (typeof (this.ref) === "function") {
+            return this.ref();
+        } else {
+            return this.ref.get();
+        }
+    }
+}
+
+/* ------------------------ */
+
+export class Set<TParam> implements IAction<TParam, void> {
+    ref: RefWriter<TParam> | ((p: TParam) => void);
+
+    constructor(ref: RefWriter<TParam> | ((p: TParam) => void)) {
+        this.ref = ref;
+    }
+
+    do(param: TParam): void {
+        if (typeof (this.ref) === "function") {
+            this.ref(param);
+        } else {
+            this.ref.set(param);
+        }
+    }
+}
+
+/* ------------------------ */
+
+
 // RunActions
 /* ------------------------ */
 
@@ -227,6 +266,7 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Pa
 /* ######################## */
 // reference
 /* ######################## */
+
 
 // class
 /* ************************ */

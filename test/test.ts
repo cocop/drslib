@@ -33,6 +33,38 @@ describe("Run", () => {
 });
 
 /* ------------------------ */
+describe("Get", () => {
+    it("Ref", () => {
+        let count = 12;
+        const getCount = new drs.Get(new drs.RefReader(() => count));
+        check(getCount.do(), 12);
+    });
+
+    it("function", () => {
+        let count = 12;
+        const getCount = new drs.Get(() => count);
+        check(getCount.do(), 12);
+    });
+});
+
+/* ------------------------ */
+describe("Set", () => {
+    it("Ref", () => {
+        let count = 0;
+        const setCount = new drs.Set(new drs.RefWriter((v: number) => count = v));
+        setCount.do(12);
+        check(count, 12);
+    });
+
+    it("function", () => {
+        let count = 0;
+        const setCount = new drs.Set((v: number) => count = v);
+        setCount.do(12);
+        check(count, 12);
+    });
+});
+
+/* ------------------------ */
 describe("RunActions", () => {
     it("Sync Only", async () => {
         const log: number[] = []
