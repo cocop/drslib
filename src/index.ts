@@ -9,7 +9,6 @@
 /* ######################## */
 
 
-/* ************************ */
 // interface
 /* ************************ */
 
@@ -34,7 +33,6 @@ const async = async <TParam>(paramPromise: ParamPromise<TParam>) => {
     return (paramPromise instanceof Promise) ? await paramPromise : paramPromise;
 }
 
-/* ************************ */
 // class
 /* ************************ */
 
@@ -62,7 +60,6 @@ export class Run<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
-/* ------------------------ */
 // RunActions
 /* ------------------------ */
 
@@ -104,7 +101,6 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
     }
 }
 
-/* ------------------------ */
 // Chain
 /* ------------------------ */
 
@@ -188,7 +184,6 @@ export class Chain<TParam> extends ChainLink<TParam, TParam> {
     }
 }
 
-/* ------------------------ */
 // Repetition
 /* ------------------------ */
 
@@ -228,3 +223,46 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Pa
 }
 
 /* ------------------------ */
+
+/* ######################## */
+// reference
+/* ######################## */
+
+// class
+/* ************************ */
+
+export class RefReader<T> {
+    get: () => T
+
+    constructor(get: () => T) {
+        this.get = get;
+    }
+}
+
+export class RefWriter<T> {
+    set: (v: T) => void
+
+    constructor(set: (v: T) => void) {
+        this.set = set
+    }
+}
+
+export class Ref<T> {
+    get: () => T
+    set: (v: T) => void
+
+    constructor(
+        get: () => T,
+        set: (v: T) => void) {
+        this.get = get
+        this.set = set
+    }
+
+    getReader() {
+        return new RefReader(this.get);
+    }
+
+    getWriter() {
+        return new RefWriter(this.set);
+    }
+}
