@@ -323,3 +323,31 @@ describe("Repetition", () => {
 });
 
 /* ------------------------ */
+describe("RefReader", () => {
+    it("success", () => {
+        let count = 12;
+        const reader = new drs.RefReader(() => count);
+        check(reader.get(), 12);
+    });
+});
+
+describe("RefWriter", () => {
+    it("success", () => {
+        let count = 0;
+        const writer = new drs.RefWriter<number>((v) => count = v);
+        writer.set(12);
+        check(count, 12);
+    });
+});
+
+describe("Ref", () => {
+    it("success", () => {
+        let count = 0;
+        const ref = new drs.Ref(
+            () => count,
+            (v) => count = v);
+        ref.set(12);
+        check(ref.get(), 12);
+    });
+});
+/* ------------------------ */
