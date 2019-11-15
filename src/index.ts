@@ -37,10 +37,10 @@ const async = async <TParam>(paramPromise: ParamPromise<TParam>) => {
 /* ************************ */
 
 export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResult> implements IAction<TOuterParam, TOuterResult> {
-    protected inner: IAction<TInnerParam, TInnerResult>;
+    protected _inner: IAction<TInnerParam, TInnerResult>;
 
     constructor(inner: IAction<TInnerParam, TInnerResult>) {
-        this.inner = inner;
+        this._inner = inner;
     }
 
     abstract do(param: TOuterParam): TOuterResult;
@@ -49,31 +49,31 @@ export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResul
 /* ------------------------ */
 
 export class Run<TParam, TResult> implements IAction<TParam, TResult> {
-    private func: (param: TParam) => TResult;
+    private _func: (param: TParam) => TResult;
 
     constructor(func: (param: TParam) => TResult) {
-        this.func = func;
+        this._func = func;
     }
 
     do(param: TParam): TResult {
-        return this.func(param);
+        return this._func(param);
     }
 }
 
 /* ------------------------ */
 
 export class Get<TResult> implements IAction<void, TResult> {
-    ref: RefReader<TResult> | (() => TResult);
+    private _ref: RefReader<TResult> | (() => TResult);
 
     constructor(ref: RefReader<TResult> | (() => TResult)) {
-        this.ref = ref;
+        this._ref = ref;
     }
 
     do(param: void): TResult {
-        if (typeof (this.ref) === "function") {
-            return this.ref();
+        if (typeof (this._ref) === "function") {
+            return this._ref();
         } else {
-            return this.ref.get();
+            return this._ref.get();
         }
     }
 }
@@ -81,17 +81,17 @@ export class Get<TResult> implements IAction<void, TResult> {
 /* ------------------------ */
 
 export class Set<TParam> implements IAction<TParam, void> {
-    ref: RefWriter<TParam> | ((p: TParam) => void);
+    private _ref: RefWriter<TParam> | ((p: TParam) => void);
 
     constructor(ref: RefWriter<TParam> | ((p: TParam) => void)) {
-        this.ref = ref;
+        this._ref = ref;
     }
 
     do(param: TParam): void {
-        if (typeof (this.ref) === "function") {
-            this.ref(param);
+        if (typeof (this._ref) === "function") {
+            this._ref(param);
         } else {
-            this.ref.set(param);
+            this._ref.set(param);
         }
     }
 }
@@ -103,38 +103,38 @@ export class Set<TParam> implements IAction<TParam, void> {
 /* ------------------------ */
 
 export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
-    private list: IAction<TParam, VoidPromise>[];
+    private _list: IAction<TParam, VoidPromise>[];
 
     constructor(list: IAction<TParam, VoidPromise>[]) {
-        this.list = list;
+        this._list = list;
     }
 
     async do(param: TParam): Promise<void> {
-        for (const item of this.list) {
+        for (const item of this._list) {
             await async(item.do(param));
         }
     }
 }
 
 export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise<TResult>> {
-    private previous: RunActions<TParam>;
-    private executing: IAction<TParam, ParamPromise<TResult>>;
-    private following: RunActions<TParam>;
+    private _previous: RunActions<TParam>;
+    private _executing: IAction<TParam, ParamPromise<TResult>>;
+    private _following: RunActions<TParam>;
 
     constructor(
         previous: IAction<TParam, VoidPromise>[],
         executing: IAction<TParam, ParamPromise<TResult>>,
         following: IAction<TParam, VoidPromise>[]) {
 
-        this.previous = new RunActions(previous);
-        this.executing = executing;
-        this.following = new RunActions(following);
+        this._previous = new RunActions(previous);
+        this._executing = executing;
+        this._following = new RunActions(following);
     }
 
     async do(param: TParam): Promise<TResult> {
-        await this.previous.do(param);
-        const result = await async(this.executing.do(param));
-        await this.following.do(param);
+        await this._previous.do(param);
+        const result = await async(this._executing.do(param));
+        await this._following.do(param);
 
         return result;
     }
@@ -155,16 +155,16 @@ type ChainedAction = {
 }
 
 class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
-    protected chain: ChainedAction[];
+    protected _chain: ChainedAction[];
 
     constructor(chain: ChainedAction[]) {
-        this.chain = chain;
+        this._chain = chain;
     }
 
     do(param: TParam): TResult {
         let result: any = param;
 
-        for (const chainLink of this.chain) {
+        for (const chainLink of this._chain) {
             switch (chainLink.chainRunStatus) {
                 case ChainRunStatus.Async:
                     throw new Error("Asynchronous task called in synchronous runner");
@@ -185,7 +185,7 @@ class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
     async do(param: TParam): Promise<TResult> {
         let result: any = param;
 
-        for (const chainLink of this.chain) {
+        for (const chainLink of this._chain) {
             switch (chainLink.chainRunStatus) {
                 case ChainRunStatus.Async:
                     result = await async(chainLink.action.do(result));
@@ -203,30 +203,30 @@ class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
     }
 }
 
-abstract class BChainLink<TTopParam, TBottomResult> {
-    protected chain: ChainedAction[];
+abstract class BChainLink {
+    protected _chain: ChainedAction[];
 
     protected constructor(chain: ChainedAction[]) {
-        this.chain = chain;
+        this._chain = chain;
     }
 }
 
-class ChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBottomResult> {
+class ChainLink<TTopParam, TBottomResult> extends BChainLink {
     create(): IAction<TTopParam, TBottomResult> {
-        return new RunChain(this.chain);
+        return new RunChain(this._chain);
     }
 
     join<TResult>(action: IAction<TBottomResult, TResult>): ChainLink<TTopParam, TResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Sync,
             action: action
         });
 
-        return new ChainLink<TTopParam, TResult>(this.chain);
+        return new ChainLink<TTopParam, TResult>(this._chain);
     }
 
     pass(action: IAction<TBottomResult, void>): ChainLink<TTopParam, TBottomResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Pass,
             action: action
         });
@@ -235,30 +235,30 @@ class ChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBottomR
     }
 
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Async,
             action: action
         });
-        return new WaitChainLink<TTopParam, TResult>(this.chain);
+        return new WaitChainLink<TTopParam, TResult>(this._chain);
     }
 }
 
-class WaitChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBottomResult> {
+class WaitChainLink<TTopParam, TBottomResult> extends BChainLink {
     create(): IAction<TTopParam, Promise<TBottomResult>> {
-        return new RunChainAsync(this.chain);
+        return new RunChainAsync(this._chain);
     }
 
     join<TResult>(action: IAction<TBottomResult, TResult>): WaitChainLink<TTopParam, TResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Sync,
             action: action
         });
 
-        return new WaitChainLink<TTopParam, TResult>(this.chain);
+        return new WaitChainLink<TTopParam, TResult>(this._chain);
     }
 
     pass(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Pass,
             action: action
         });
@@ -267,12 +267,12 @@ class WaitChainLink<TTopParam, TBottomResult> extends BChainLink<TTopParam, TBot
     }
 
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
-        this.chain.push({
+        this._chain.push({
             chainRunStatus: ChainRunStatus.Async,
             action: action
         });
 
-        return new WaitChainLink<TTopParam, TResult>(this.chain);
+        return new WaitChainLink<TTopParam, TResult>(this._chain);
     }
 }
 
@@ -288,7 +288,7 @@ export class Chain<TParam> extends ChainLink<TParam, TParam> {
 export class CountRepetition extends BOuter<number, Promise<void>, void, VoidPromise> {
     async do(count: number): Promise<void> {
         for (let i = 0; i < count; i++) {
-            await async(this.inner.do());
+            await async(this._inner.do());
         }
     }
 }
@@ -296,7 +296,7 @@ export class CountRepetition extends BOuter<number, Promise<void>, void, VoidPro
 export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TParam, VoidPromise> {
     async do(params: TParam[]): Promise<void> {
         for (const param of params) {
-            await async(this.inner.do(param));
+            await async(this._inner.do(param));
         }
     }
 }
@@ -304,19 +304,19 @@ export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TP
 export type WithCount<TParam> = {
     param: TParam,
     count: number
-};
+}
 
 export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<void>, TParam, VoidPromise> {
     async do(param: WithCount<TParam>): Promise<void> {
         for (let i = 0; i < param.count; i++) {
-            await async(this.inner.do(param.param));
+            await async(this._inner.do(param.param));
         }
     }
 }
 
 export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, ParamPromise<boolean>> {
     async do(param: TParam): Promise<void> {
-        while (!await async(this.inner.do(param))) { };
+        while (!await async(this._inner.do(param))) { };
     }
 }
 
@@ -370,16 +370,16 @@ export class Ref<T> {
  * Note that you can specify an invalid path
  */
 export class RefPath<TParam> extends Ref<TParam> {
-    private readonly context: any
-    private readonly path: string[]
+    private readonly _context: any
+    private readonly _path: string[]
 
     constructor(context: any, path: string | string[]) {
         const get = () => this._get;
         const set = () => this._set;
         super(get(), set());
 
-        this.context = context
-        this.path = this._pathToArray(path);
+        this._context = context
+        this._path = this._pathToArray(path);
     }
 
     private _pathToArray(path: string | string[]) {
@@ -391,23 +391,23 @@ export class RefPath<TParam> extends Ref<TParam> {
     }
 
     private _get(): TParam {
-        let node = this.context;
+        let node = this._context;
 
-        for (let i = 0; i < this.path.length; i++) {
-            node = node[this.path[i]]
+        for (let i = 0; i < this._path.length; i++) {
+            node = node[this._path[i]]
         }
 
         return node
     }
 
     private _set(value: TParam) {
-        let node = this.context;
+        let node = this._context;
 
-        for (let i = 0; i < this.path.length - 1; i++) {
-            node = node[this.path[i]]
+        for (let i = 0; i < this._path.length - 1; i++) {
+            node = node[this._path[i]]
         }
 
-        node[this.path[this.path.length - 1]] = value;
+        node[this._path[this._path.length - 1]] = value;
     }
 }
 
