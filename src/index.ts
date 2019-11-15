@@ -26,11 +26,11 @@ export function isIAction<TParam, TResult>(arg: any): arg is IAction<TParam, TRe
         && typeof arg.do === "function";
 }
 
-export type ParamPromise<TParam> = TParam | Promise<TParam>;
-export type VoidPromise = ParamPromise<void>;
+export type Syncable<T> = T | Promise<T>;
+export type VoidSyncable = Syncable<void>;
 
-const async = async <TParam>(paramPromise: ParamPromise<TParam>) => {
-    return (paramPromise instanceof Promise) ? await paramPromise : paramPromise;
+const async = async <T>(syncable: Syncable<T>) => {
+    return (syncable instanceof Promise) ? await syncable : syncable;
 }
 
 // class
@@ -103,9 +103,9 @@ export class Set<TParam> implements IAction<TParam, void> {
 /* ------------------------ */
 
 export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
-    private _list: IAction<TParam, VoidPromise>[];
+    private _list: IAction<TParam, VoidSyncable>[];
 
-    constructor(list: IAction<TParam, VoidPromise>[]) {
+    constructor(list: IAction<TParam, VoidSyncable>[]) {
         this._list = list;
     }
 
@@ -118,13 +118,13 @@ export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
 
 export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise<TResult>> {
     private _previous: RunActions<TParam>;
-    private _executing: IAction<TParam, ParamPromise<TResult>>;
+    private _executing: IAction<TParam, Syncable<TResult>>;
     private _following: RunActions<TParam>;
 
     constructor(
-        previous: IAction<TParam, VoidPromise>[],
-        executing: IAction<TParam, ParamPromise<TResult>>,
-        following: IAction<TParam, VoidPromise>[]) {
+        previous: IAction<TParam, VoidSyncable>[],
+        executing: IAction<TParam, Syncable<TResult>>,
+        following: IAction<TParam, VoidSyncable>[]) {
 
         this._previous = new RunActions(previous);
         this._executing = executing;
@@ -285,7 +285,7 @@ export class Chain<TParam> extends ChainLink<TParam, TParam> {
 // Repetition
 /* ------------------------ */
 
-export class CountRepetition extends BOuter<number, Promise<void>, void, VoidPromise> {
+export class CountRepetition extends BOuter<number, Promise<void>, void, VoidSyncable> {
     async do(count: number): Promise<void> {
         for (let i = 0; i < count; i++) {
             await async(this._inner.do());
@@ -293,7 +293,7 @@ export class CountRepetition extends BOuter<number, Promise<void>, void, VoidPro
     }
 }
 
-export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TParam, VoidPromise> {
+export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TParam, VoidSyncable> {
     async do(params: TParam[]): Promise<void> {
         for (const param of params) {
             await async(this._inner.do(param));
@@ -306,7 +306,7 @@ export type WithCount<TParam> = {
     count: number
 }
 
-export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<void>, TParam, VoidPromise> {
+export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<void>, TParam, VoidSyncable> {
     async do(param: WithCount<TParam>): Promise<void> {
         for (let i = 0; i < param.count; i++) {
             await async(this._inner.do(param.param));
@@ -314,7 +314,7 @@ export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<v
     }
 }
 
-export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, ParamPromise<boolean>> {
+export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Syncable<boolean>> {
     async do(param: TParam): Promise<void> {
         while (!await async(this._inner.do(param))) { };
     }
