@@ -457,7 +457,7 @@ describe("RefPath", () => {
             }
         }
 
-        const ref = new drs.RefPath(
+        const ref = new drs.RefPath<string>(
             context, "yyy.aaa"
         );
 
