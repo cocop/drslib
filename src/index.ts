@@ -365,3 +365,50 @@ export class Ref<T> {
         return new RefWriter(this.set);
     }
 }
+
+/**
+ * Note that you can specify an invalid path
+ */
+export class RefPath<TParam> extends Ref<TParam> {
+    private readonly context: any
+    private readonly path: string[]
+
+    constructor(context: any, path: string | string[]) {
+        const get = () => this._get;
+        const set = () => this._set;
+        super(get(), set());
+
+        this.context = context
+        this.path = this._pathToArray(path);
+    }
+
+    private _pathToArray(path: string | string[]) {
+        if (typeof path === "string") {
+            return path.split(".");
+        }
+
+        return path
+    }
+
+    private _get(): TParam {
+        let node = this.context;
+
+        for (let i = 0; i < this.path.length; i++) {
+            node = node[this.path[i]]
+        }
+
+        return node
+    }
+
+    private _set(value: TParam) {
+        let node = this.context;
+
+        for (let i = 0; i < this.path.length - 1; i++) {
+            node = node[this.path[i]]
+        }
+
+        node[this.path[this.path.length - 1]] = value;
+    }
+}
+
+/* ------------------------ */

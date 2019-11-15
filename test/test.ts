@@ -430,3 +430,39 @@ describe("Ref", () => {
     });
 });
 /* ------------------------ */
+
+describe("RefPath", () => {
+    it("success array", () => {
+        const context = {
+            xxx: "1",
+            yyy: {
+                aaa: "error"
+            }
+        }
+
+        const ref = new drs.RefPath<string>(
+            context, ["yyy", "aaa"]
+        );
+
+        ref.set("ok");
+
+        check(ref.get(), "ok");
+    });
+
+    it("success string", () => {
+        const context = {
+            xxx: "1",
+            yyy: {
+                aaa: "error"
+            }
+        }
+
+        const ref = new drs.RefPath(
+            context, "yyy.aaa"
+        );
+
+        ref.set("ok");
+
+        check(ref.get(), "ok");
+    });
+});
