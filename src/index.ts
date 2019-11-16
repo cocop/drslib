@@ -102,7 +102,7 @@ export class Set<TParam> implements IAction<TParam, void> {
 // RunActions
 /* ------------------------ */
 
-export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
+export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
     private _list: IAction<TParam, VoidSyncable>[];
 
     constructor(list: IAction<TParam, VoidSyncable>[]) {
@@ -117,24 +117,24 @@ export class RunActions<TParam> implements IAction<TParam, Promise<void>>{
 }
 
 export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise<TResult>> {
-    private _previous: RunActions<TParam>;
+    private _previous: IAction<TParam, VoidSyncable>;
     private _executing: IAction<TParam, Syncable<TResult>>;
-    private _following: RunActions<TParam>;
+    private _following: IAction<TParam, VoidSyncable>;
 
     constructor(
-        previous: IAction<TParam, VoidSyncable>[],
+        previous: IAction<TParam, VoidSyncable>,
         executing: IAction<TParam, Syncable<TResult>>,
-        following: IAction<TParam, VoidSyncable>[]) {
+        following: IAction<TParam, VoidSyncable>) {
 
-        this._previous = new RunActions(previous);
+        this._previous = previous;
         this._executing = executing;
-        this._following = new RunActions(following);
+        this._following = following;
     }
 
     async do(param: TParam): Promise<TResult> {
-        await this._previous.do(param);
+        await async(this._previous.do(param));
         const result = await async(this._executing.do(param));
-        await this._following.do(param);
+        await async(this._following.do(param));
 
         return result;
     }
