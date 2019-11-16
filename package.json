@@ -26,8 +26,10 @@
     "url": "git+https://github.com/cocop/drslib.git"
   },
   "scripts": {
+    "bat": "npm run build && npm run test",
     "build": "tsc",
-    "prepare": "tsc"
+    "prepare": "tsc",
+    "test": "node_modules/.bin/mocha.cmd build/test/test.js"
   },
   "types": "build/src/index.d.ts"
 }
