@@ -103,7 +103,7 @@ export class Set<TParam> implements IAction<TParam, void> {
 /* ------------------------ */
 
 export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
-    private _list: IAction<TParam, VoidSyncable>[];
+    protected _list: IAction<TParam, VoidSyncable>[];
 
     constructor(list: IAction<TParam, VoidSyncable>[]) {
         this._list = list;
@@ -113,6 +113,16 @@ export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
         for (const item of this._list) {
             await async(item.do(param));
         }
+    }
+}
+
+export class RunActionsParallel<TParam> extends RunActions<TParam> {
+    async do(param: TParam): Promise<void> {
+        await Promise.all(
+            this._list.map(
+                (i) => async(i.do(param))
+            )
+        );
     }
 }
 

@@ -1,5 +1,6 @@
 import assert from "assert";
 import * as drs from "../src/index";
+import { setTimeout } from "timers";
 
 /* ------------------------ */
 function check<TResult>(
@@ -120,17 +121,83 @@ describe("RunActions", () => {
 });
 
 /* ------------------------ */
+describe("RunActionsParallel", () => {
+    it("Sync Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsParallel<void>([
+            new drs.Run(() => { log.push(1) }),
+            new drs.Run(() => { log.push(2) }),
+            new drs.Run(() => { log.push(3) }),
+        ]);
+
+        await action.do();
+
+        check(log, [1, 2, 3]);
+    });
+
+    it("Async Only", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsParallel<void>([
+            new drs.Run(async () => {
+                await new Promise((e) => setTimeout(e, 1000));
+                log.push(1)
+            }),
+            new drs.Run(async () => {
+                await new Promise((e) => setTimeout(e, 500));
+                log.push(2);
+            }),
+            new drs.Run(async () => {
+                await new Promise((e) => setTimeout(e, 100));
+                log.push(3)
+            }),
+        ]);
+
+        await action.do();
+
+        check(log, [3, 2, 1]);
+    });
+
+    it("Async, Sync Mixing", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsParallel<void>([
+            new drs.Run(async () => {
+                await new Promise((e) => setTimeout(e, 500));
+                log.push(1)
+            }),
+            new drs.Run(() => { log.push(2) }),
+            new drs.Run(async () => {
+                await new Promise((e) => setTimeout(e, 100));
+                log.push(3);
+            }),
+        ]);
+
+        await action.do();
+
+        check(log, [2, 3, 1]);
+    });
+
+    it("in param", async () => {
+        const log: number[] = []
+        const action = new drs.RunActionsParallel<number>([
+            new drs.Run(() => { log.push(1) }),
+            new drs.Run((p) => { log.push(p) }),
+            new drs.Run(() => { log.push(3) }),
+        ]);
+
+        await action.do(2);
+
+        check(log, [1, 2, 3]);
+    });
+});
+
+/* ------------------------ */
 describe("RunActionsOrder", () => {
     it("SyncAction Sync Only", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(() => { log.push(1) })
-            ],
+            new drs.Run(() => { log.push(1) }),
             new drs.Run((p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(() => { log.push(3) })
-            ],
+            new drs.Run(() => { log.push(3) })
         );
 
         check(await action.do(2), "xxx");
@@ -140,13 +207,9 @@ describe("RunActionsOrder", () => {
     it("SyncAction Async Only", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(async () => { log.push(1) })
-            ],
+            new drs.Run(async () => { log.push(1) }),
             new drs.Run((p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(async () => { log.push(3) })
-            ],
+            new drs.Run(async () => { log.push(3) })
         );
 
         check(await action.do(2), "xxx");
@@ -156,31 +219,21 @@ describe("RunActionsOrder", () => {
     it("SyncAction Async, Sync Mixing", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(() => { log.push(1) }),
-                new drs.Run(async () => { log.push(2) })
-            ],
+            new drs.Run(() => { log.push(1) }),
             new drs.Run((p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(async () => { log.push(4) }),
-                new drs.Run(() => { log.push(5) })
-            ],
+            new drs.Run(async () => { log.push(3) }),
         );
 
-        check(await action.do(3), "xxx");
-        check(log, [1, 2, 3, 4, 5]);
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
     });
 
     it("AsyncAction Sync Only", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(() => { log.push(1) })
-            ],
+            new drs.Run(() => { log.push(1) }),
             new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(() => { log.push(3) })
-            ],
+            new drs.Run(() => { log.push(3) })
         );
 
         check(await action.do(2), "xxx");
@@ -190,13 +243,9 @@ describe("RunActionsOrder", () => {
     it("AsyncAction Async Only", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(async () => { log.push(1) })
-            ],
+            new drs.Run(async () => { log.push(1) }),
             new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(async () => { log.push(3) })
-            ],
+            new drs.Run(async () => { log.push(3) })
         );
 
         check(await action.do(2), "xxx");
@@ -206,19 +255,13 @@ describe("RunActionsOrder", () => {
     it("AsyncAction Async, Sync Mixing", async () => {
         const log: number[] = []
         const action = new drs.RunActionsOrder(
-            [
-                new drs.Run(() => { log.push(1) }),
-                new drs.Run(async () => { log.push(2) })
-            ],
+            new drs.Run(async () => { log.push(1) }),
             new drs.Run(async (p: number) => { log.push(p); return "xxx"; }),
-            [
-                new drs.Run(async () => { log.push(4) }),
-                new drs.Run(() => { log.push(5) })
-            ],
+            new drs.Run(() => { log.push(3) })
         );
 
-        check(await action.do(3), "xxx");
-        check(log, [1, 2, 3, 4, 5]);
+        check(await action.do(2), "xxx");
+        check(log, [1, 2, 3]);
     });
 });
 
@@ -410,6 +453,7 @@ describe("RefReader", () => {
     });
 });
 
+/* ------------------------ */
 describe("RefWriter", () => {
     it("success", () => {
         let count = 0;
@@ -419,6 +463,7 @@ describe("RefWriter", () => {
     });
 });
 
+/* ------------------------ */
 describe("Ref", () => {
     it("success", () => {
         let count = 0;
@@ -429,8 +474,8 @@ describe("Ref", () => {
         check(ref.get(), 12);
     });
 });
-/* ------------------------ */
 
+/* ------------------------ */
 describe("RefPath", () => {
     it("success array", () => {
         const context = {
