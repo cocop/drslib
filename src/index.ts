@@ -105,7 +105,7 @@ export class Set<TParam> implements IAction<TParam, void> {
 export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
     protected _list: IAction<TParam, VoidSyncable>[];
 
-    constructor(list: IAction<TParam | void, VoidSyncable>[]) {
+    constructor(list: IAction<TParam, VoidSyncable>[]) {
         this._list = list;
     }
 
@@ -132,9 +132,9 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
     private _following: IAction<TParam, VoidSyncable>;
 
     constructor(
-        previous: IAction<TParam | void, VoidSyncable>,
-        executing: IAction<TParam | void, Syncable<TResult>>,
-        following: IAction<TParam | void, VoidSyncable>) {
+        previous: IAction<TParam, VoidSyncable>,
+        executing: IAction<TParam, Syncable<TResult>>,
+        following: IAction<TParam, VoidSyncable>) {
 
         this._previous = previous;
         this._executing = executing;
