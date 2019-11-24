@@ -156,7 +156,8 @@ export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise
 enum ChainRunStatus {
     Async,
     Sync,
-    Pass,
+    PassAsync,
+    PassSycn,
 }
 
 type ChainedAction = {
@@ -181,7 +182,9 @@ class RunChain<TParam, TResult> implements IAction<TParam, TResult> {
                 case ChainRunStatus.Sync:
                     result = chainLink.action.do(result);
                     break;
-                case ChainRunStatus.Pass:
+                case ChainRunStatus.PassAsync:
+                    throw new Error("Asynchronous task called in synchronous runner");
+                case ChainRunStatus.PassSycn:
                     chainLink.action.do(result);
                     break;
             }
@@ -203,7 +206,10 @@ class RunChainAsync<TParam, TResult> extends RunChain<TParam, Promise<TResult>>{
                 case ChainRunStatus.Sync:
                     result = chainLink.action.do(result);
                     break;
-                case ChainRunStatus.Pass:
+                case ChainRunStatus.PassAsync:
+                    await async(chainLink.action.do(result));
+                    break;
+                case ChainRunStatus.PassSycn:
                     chainLink.action.do(result);
                     break;
             }
@@ -237,7 +243,7 @@ class ChainLink<TTopParam, TBottomResult> extends BChainLink {
 
     pass(action: IAction<TBottomResult, void>): ChainLink<TTopParam, TBottomResult> {
         this._chain.push({
-            chainRunStatus: ChainRunStatus.Pass,
+            chainRunStatus: ChainRunStatus.PassSycn,
             action: action
         });
 
@@ -250,6 +256,15 @@ class ChainLink<TTopParam, TBottomResult> extends BChainLink {
             action: action
         });
         return new WaitChainLink<TTopParam, TResult>(this._chain);
+    }
+
+    passWait(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
+        this._chain.push({
+            chainRunStatus: ChainRunStatus.PassAsync,
+            action: action
+        });
+
+        return new WaitChainLink<TTopParam, TBottomResult>(this._chain);
     }
 }
 
@@ -269,7 +284,7 @@ class WaitChainLink<TTopParam, TBottomResult> extends BChainLink {
 
     pass(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
         this._chain.push({
-            chainRunStatus: ChainRunStatus.Pass,
+            chainRunStatus: ChainRunStatus.PassSycn,
             action: action
         });
 
@@ -283,6 +298,15 @@ class WaitChainLink<TTopParam, TBottomResult> extends BChainLink {
         });
 
         return new WaitChainLink<TTopParam, TResult>(this._chain);
+    }
+
+    passWait(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
+        this._chain.push({
+            chainRunStatus: ChainRunStatus.PassAsync,
+            action: action
+        });
+
+        return this;
     }
 }
 

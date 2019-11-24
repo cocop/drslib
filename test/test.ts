@@ -340,6 +340,18 @@ describe("chain", () => {
         check(await action.do(10), 11);
         check(log, [10]);
     });
+
+    it("passWait", async () => {
+        const log: number[] = [];
+        const action = new drs.Chain<number>()
+            .join(new drs.Run((p) => p))
+            .passWait(new drs.Run(async (p) => log.push(p)))
+            .join(new drs.Run((p) => p + 1))
+            .create();
+
+        check(await action.do(10), 11);
+        check(log, [10]);
+    });
 });
 
 /* ------------------------ */
