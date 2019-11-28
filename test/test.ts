@@ -301,7 +301,7 @@ describe("chain", () => {
                 new drs.Run(() => { log.push(1) }),
                 new drs.Run(() => { log.push(2) }),
             ]))
-            .join(new drs.Run(async () => { // no wait
+            .join(new drs.Run(async () => { // not wait
                 await new Promise(resolve => setTimeout(resolve, 10));
                 log.push(4);
             }))
