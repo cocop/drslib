@@ -139,15 +139,15 @@ describe("RunActionsParallel", () => {
         const log: number[] = []
         const action = new drs.RunActionsParallel<void>([
             new drs.Run(async () => {
-                await new Promise((e) => setTimeout(e, 1000));
+                await new Promise((e) => setTimeout(e, 100));
                 log.push(1)
             }),
             new drs.Run(async () => {
-                await new Promise((e) => setTimeout(e, 500));
+                await new Promise((e) => setTimeout(e, 50));
                 log.push(2);
             }),
             new drs.Run(async () => {
-                await new Promise((e) => setTimeout(e, 100));
+                await new Promise((e) => setTimeout(e, 10));
                 log.push(3)
             }),
         ]);
@@ -161,12 +161,12 @@ describe("RunActionsParallel", () => {
         const log: number[] = []
         const action = new drs.RunActionsParallel<void>([
             new drs.Run(async () => {
-                await new Promise((e) => setTimeout(e, 500));
+                await new Promise((e) => setTimeout(e, 50));
                 log.push(1)
             }),
             new drs.Run(() => { log.push(2) }),
             new drs.Run(async () => {
-                await new Promise((e) => setTimeout(e, 100));
+                await new Promise((e) => setTimeout(e, 10));
                 log.push(3);
             }),
         ]);
@@ -302,7 +302,7 @@ describe("chain", () => {
                 new drs.Run(() => { log.push(2) }),
             ]))
             .join(new drs.Run(async () => { // no wait
-                await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+                await new Promise(resolve => setTimeout(resolve, 10));
                 log.push(4);
             }))
             .joinWait(new drs.Run(async (p) => {
