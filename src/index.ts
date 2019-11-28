@@ -181,15 +181,15 @@ class RunChainSync<TParam, TResult> extends BRunChain<TParam, TResult> {
 
         for (const chainLink of this._chain) {
             switch (chainLink.doStatus) {
-                case ChainedDoStatus.JoinAsync:
-                case ChainedDoStatus.PassAsync:
-                    throw new Error("Asynchronous task called in synchronous runner");
                 case ChainedDoStatus.JoinSync:
                     result = chainLink.action.do(result);
                     break;
                 case ChainedDoStatus.PassSync:
                     chainLink.action.do(result);
                     break;
+                case ChainedDoStatus.JoinAsync:
+                case ChainedDoStatus.PassAsync:
+                    throw new Error("Asynchronous task called in synchronous runner");
             }
         }
 
