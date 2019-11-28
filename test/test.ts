@@ -19,6 +19,27 @@ function check<TResult>(
 }
 
 /* ------------------------ */
+describe("BAction", () => {
+    it("extends", () => {
+        class xxx extends drs.BAction<void, number, {
+            index: number,
+            array: number[],
+        }> {
+            do() {
+                return this.$.array[this.$.index];
+            }
+        }
+
+        const action = new xxx({
+            index: 1,
+            array: [20, 10]
+        });
+
+        check(action.do(), 10);
+    });
+});
+
+/* ------------------------ */
 describe("Run", () => {
     it("Sync", () => {
         const action = new drs.Run((p: string) => p);

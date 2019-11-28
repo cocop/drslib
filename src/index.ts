@@ -36,6 +36,18 @@ const async = async <T>(syncable: Syncable<T>) => {
 // class
 /* ************************ */
 
+export abstract class BAction<TParam, TResult, TValues> implements IAction<TParam, TResult> {
+    protected $: TValues
+
+    constructor(values: TValues) {
+        this.$ = values;
+    }
+
+    abstract do(param: TParam): TResult;
+}
+
+/* ------------------------ */
+
 export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResult> implements IAction<TOuterParam, TOuterResult> {
     protected _inner: IAction<TInnerParam, TInnerResult>;
 
