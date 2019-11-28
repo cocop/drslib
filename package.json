@@ -1,6 +1,6 @@
 {
   "name": "drslib",
-  "description": "Utility Library for Reflection Architecture",
+  "description": "Utility Library for Structure-Function Architectural pattern",
   "version": "0.19.1",
   "author": "coco <rmecila@gmail.com>",
   "dependencies": {},
