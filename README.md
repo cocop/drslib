@@ -1,6 +1,6 @@
 # drslib
 
-Utility Library for Reflection Architecture
+Utility Library for Structure-Function Architectural pattern
 
 [Click here for details of the architecture](https://gist.github.com/cocop/953ac9e9be10d5846705c873eb67d6fd)  
 
