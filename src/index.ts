@@ -41,8 +41,6 @@ export abstract class BAction<TParam, TResult, TValues> implements IAction<TPara
     abstract do(param: TParam): TResult;
 }
 
-/* ------------------------ */
-
 export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResult> implements IAction<TOuterParam, TOuterResult> {
     protected _inner: IAction<TInnerParam, TInnerResult>;
 
@@ -67,8 +65,6 @@ export class Run<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
-/* ------------------------ */
-
 export class Get<TResult> implements IAction<void, TResult> {
     private _ref: RefReader<TResult> | (() => TResult);
 
@@ -85,8 +81,6 @@ export class Get<TResult> implements IAction<void, TResult> {
     }
 }
 
-/* ------------------------ */
-
 export class Set<TParam> implements IAction<TParam, void> {
     private _ref: RefWriter<TParam> | ((p: TParam) => void);
 
@@ -102,8 +96,6 @@ export class Set<TParam> implements IAction<TParam, void> {
         }
     }
 }
-
-/* ------------------------ */
 
 
 // RunActions
@@ -347,8 +339,6 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Sy
     }
 }
 
-/* ------------------------ */
-
 /* ######################## */
 // reference
 /* ######################## */
@@ -433,5 +423,3 @@ export class RefPath<TParam> extends Ref<TParam> {
         node[this._path[this._path.length - 1]] = value;
     }
 }
-
-/* ------------------------ */
