@@ -376,75 +376,47 @@ describe("chain", () => {
 });
 
 /* ------------------------ */
-describe("CountRepetition", () => {
+describe("Retry", () => {
     it("Sync", async () => {
         const log: string[] = [];
-        const action = new drs.CountRepetition(new drs.Run(() => { log.push("x") }));
+        const action = new drs.Retry(
+            3,
+            new drs.Run(() => {
+                log.push("x");
+                return false;
+            }));
 
-        await action.do(3);
+        await action.do();
 
-        check(log, ["x", "x", "x"]);
+        check(log, ["x", "x", "x", "x"]);
     });
 
     it("Async", async () => {
         const log: string[] = [];
-        const action = new drs.CountRepetition(new drs.Run(async () => { log.push("x") }));
+        const action = new drs.Retry(
+            3,
+            new drs.Run(async () => {
+                log.push("x");
+                return false;
+            }));
 
-        await action.do(3);
+        await action.do();
 
-        check(log, ["x", "x", "x"]);
-    });
-});
-
-/* ------------------------ */
-describe("ParamsRepetition", () => {
-    it("Sync", async () => {
-        const log: string[] = [];
-        const action = new drs.ParamsRepetition(
-            new drs.Run((p: string) => { log.push(p) }));
-
-        await action.do(["x", "x", "x"]);
-
-        check(log, ["x", "x", "x"]);
+        check(log, ["x", "x", "x", "x"]);
     });
 
-    it("Async", async () => {
+    it("success", async () => {
         const log: string[] = [];
-        const action = new drs.ParamsRepetition(
-            new drs.Run(async (p: string) => { log.push(p) }));
+        const action = new drs.Retry(
+            3,
+            new drs.Run(() => {
+                log.push("x");
+                return true;
+            }));
 
-        await action.do(["x", "x", "x"]);
+        await action.do();
 
-        check(log, ["x", "x", "x"]);
-    });
-});
-
-/* ------------------------ */
-describe("ParamRepetition", () => {
-    it("Sync", async () => {
-        const log: string[] = [];
-        const action = new drs.ParamRepetition(
-            new drs.Run((p: string) => { log.push(p) }));
-
-        await action.do({
-            param: "x",
-            count: 3
-        });
-
-        check(log, ["x", "x", "x"]);
-    });
-
-    it("Async", async () => {
-        const log: string[] = [];
-        const action = new drs.ParamRepetition(
-            new drs.Run(async (p: string) => { log.push(p) }));
-
-        await action.do({
-            param: "x",
-            count: 3
-        });
-
-        check(log, ["x", "x", "x"]);
+        check(log, ["x"]);
     });
 });
 

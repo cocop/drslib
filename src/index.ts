@@ -8,10 +8,6 @@
 // Actions
 /* ######################## */
 
-
-// interface
-/* ************************ */
-
 export interface IAction<TParam, TResult> {
     do(param: TParam): TResult;
 }
@@ -33,8 +29,7 @@ const async = async <T>(syncable: Syncable<T>) => {
     return (syncable instanceof Promise) ? await syncable : syncable;
 }
 
-// class
-/* ************************ */
+/* ------------------------ */
 
 export abstract class BAction<TParam, TResult, TValues> implements IAction<TParam, TResult> {
     protected $: TValues
@@ -327,31 +322,21 @@ export class Chain<TParam> extends ChainLink<TParam, TParam> {
 // Repetition
 /* ------------------------ */
 
-export class CountRepetition extends BOuter<number, Promise<void>, void, VoidSyncable> {
-    async do(count: number): Promise<void> {
-        for (let i = 0; i < count; i++) {
-            await async(this._inner.do());
-        }
+export class Retry extends BOuter<void, Promise<void>, void, Syncable<boolean>>{
+    private readonly _retryCount: number;
+
+    constructor(retryCount: number, inner: IAction<void, Syncable<boolean>>) {
+        super(inner);
+        this._retryCount = retryCount;
     }
-}
 
-export class ParamsRepetition<TParam> extends BOuter<TParam[], Promise<void>, TParam, VoidSyncable> {
-    async do(params: TParam[]): Promise<void> {
-        for (const param of params) {
-            await async(this._inner.do(param));
-        }
-    }
-}
+    async do(): Promise<void> {
+        let count = 0;
 
-export type WithCount<TParam> = {
-    param: TParam,
-    count: number
-}
-
-export class ParamRepetition<TParam> extends BOuter<WithCount<TParam>, Promise<void>, TParam, VoidSyncable> {
-    async do(param: WithCount<TParam>): Promise<void> {
-        for (let i = 0; i < param.count; i++) {
-            await async(this._inner.do(param.param));
+        while (
+            !await async(this._inner.do()) &&
+            count < this._retryCount) {
+            ++count;
         }
     }
 }
