@@ -353,10 +353,6 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Sy
 // reference
 /* ######################## */
 
-
-// class
-/* ************************ */
-
 export class RefReader<T> {
     get: () => T
 
