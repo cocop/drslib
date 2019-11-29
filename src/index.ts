@@ -97,6 +97,20 @@ export class Set<TParam> implements IAction<TParam, void> {
     }
 }
 
+export class IfValid<TParam, TResult> extends BOuter<TParam, TResult | void, TParam, TResult> {
+    private readonly _isDo: IAction<void, boolean>;
+
+    constructor(isDo: IAction<void, boolean>, inner: IAction<TParam, TResult>) {
+        super(inner);
+        this._isDo = isDo;
+    }
+
+    do(param: TParam): TResult | void {
+        if (this._isDo.do()) {
+            return this._inner.do(param);
+        }
+    }
+}
 
 // RunActions
 /* ------------------------ */

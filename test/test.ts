@@ -87,6 +87,27 @@ describe("Set", () => {
 });
 
 /* ------------------------ */
+describe("IfValid", () => {
+    it("true", () => {
+        let count = 0;
+        const ifValid = new drs.IfValid<void, void>(
+            new drs.Run(() => true),
+            new drs.Run((p: void) => { ++count; }));
+        ifValid.do();
+        check(count, 1);
+    });
+
+    it("false", () => {
+        let count = 0;
+        const ifValid = new drs.IfValid<void, void>(
+            new drs.Run(() => false),
+            new drs.Run((p: void) => { ++count; }));
+        ifValid.do();
+        check(count, 0);
+    });
+});
+
+/* ------------------------ */
 describe("RunActions", () => {
     it("Sync Only", async () => {
         const log: number[] = []
