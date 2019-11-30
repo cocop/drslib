@@ -279,47 +279,47 @@ abstract class BChainLink<TBottomResult> {
     }
 }
 
-class ChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
+class SyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
     create(): IAction<TTopParam, TBottomResult> {
         return new RunChainSync(this._chain);
     }
 
-    join: <TResult>(action: IAction<TBottomResult, TResult>) => ChainLink<TTopParam, TResult>
+    join: <TResult>(action: IAction<TBottomResult, TResult>) => SyncChainLink<TTopParam, TResult>
         = super.join;
 
-    pass: (action: IAction<TBottomResult, void>) => ChainLink<TTopParam, TBottomResult>
+    pass: (action: IAction<TBottomResult, void>) => SyncChainLink<TTopParam, TBottomResult>
         = super.pass;
 
-    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): WaitChainLink<TTopParam, TResult> {
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): AsyncChainLink<TTopParam, TResult> {
         super.joinWait(action);
-        return new WaitChainLink<TTopParam, TResult>(this._chain);
+        return new AsyncChainLink<TTopParam, TResult>(this._chain);
     }
 
-    passWait(action: IAction<TBottomResult, void>): WaitChainLink<TTopParam, TBottomResult> {
+    passWait(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
         super.passWait(action);
-        return new WaitChainLink<TTopParam, TBottomResult>(this._chain);
+        return new AsyncChainLink<TTopParam, TBottomResult>(this._chain);
     }
 }
 
-class WaitChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
+class AsyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
     create(): IAction<TTopParam, Promise<TBottomResult>> {
         return new RunChainAsync(this._chain);
     }
 
-    join: <TResult>(action: IAction<TBottomResult, TResult>) => WaitChainLink<TTopParam, TResult>
+    join: <TResult>(action: IAction<TBottomResult, TResult>) => AsyncChainLink<TTopParam, TResult>
         = super.join;
 
-    pass: (action: IAction<TBottomResult, void>) => ChainLink<TTopParam, TBottomResult>
+    pass: (action: IAction<TBottomResult, void>) => AsyncChainLink<TTopParam, TBottomResult>
         = super.pass;
 
-    joinWait: <TResult>(action: IAction<TBottomResult, Promise<TResult>>) => WaitChainLink<TTopParam, TResult>
+    joinWait: <TResult>(action: IAction<TBottomResult, Promise<TResult>>) => AsyncChainLink<TTopParam, TResult>
         = super.joinWait;
 
-    passWait: (action: IAction<TBottomResult, void>) => WaitChainLink<TTopParam, TBottomResult>
+    passWait: (action: IAction<TBottomResult, void>) => AsyncChainLink<TTopParam, TBottomResult>
         = super.passWait
 }
 
-export class Chain<TParam> extends ChainLink<TParam, TParam> {
+export class Chain<TParam> extends SyncChainLink<TParam, TParam> {
     constructor() {
         super([]);
     }
