@@ -89,21 +89,21 @@ describe("Set", () => {
 /* ------------------------ */
 describe("IfValid", () => {
     it("true", () => {
-        let count = 0;
+        let isCall = false;
         const ifValid = new drs.IfValid<void, void>(
             new drs.Run(() => true),
-            new drs.Run((p: void) => { ++count; }));
+            new drs.Run((p: void) => { isCall = true; }));
         ifValid.do();
-        check(count, 1);
+        check(isCall, true);
     });
 
     it("false", () => {
-        let count = 0;
+        let isCall = false;
         const ifValid = new drs.IfValid<void, void>(
             new drs.Run(() => false),
-            new drs.Run((p: void) => { ++count; }));
+            new drs.Run((p: void) => { isCall = true; }));
         ifValid.do();
-        check(count, 0);
+        check(isCall, false);
     });
 });
 
