@@ -393,6 +393,11 @@ export interface IRefWriter<T> {
 }
 
 /**
+ * Context reference interface
+ */
+export interface IRef<T> extends IRefReader<T>, IRefWriter<T> { }
+
+/**
  * Read-only context reference class
  */
 export class RefReader<T> implements IRefReader<T> {
@@ -417,7 +422,7 @@ export class RefWriter<T> implements IRefWriter<T> {
 /**
  * Context reference class
  */
-export class Ref<T> implements IRefReader<T>, IRefWriter<T> {
+export class Ref<T> implements IRef<T> {
     get: () => T
     set: (v: T) => void
 
@@ -432,7 +437,7 @@ export class Ref<T> implements IRefReader<T>, IRefWriter<T> {
 /**
  * Context reference class
  */
-export class RefPath<T> implements IRefReader<T>, IRefWriter<T> {
+export class RefPath<T> implements IRef<T> {
     private readonly _context: any
     private readonly _path: string[]
 
