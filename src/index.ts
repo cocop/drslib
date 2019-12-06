@@ -8,6 +8,9 @@
 // Actions
 /* ######################## */
 
+/**
+ * Action interface
+ */
 export interface IAction<TParam, TResult> {
     do(param: TParam): TResult;
 }
@@ -31,6 +34,9 @@ const async = async <T>(syncable: Syncable<T>) => {
 
 /* ------------------------ */
 
+/**
+ * base class for common constructor
+ */
 export abstract class BAction<TParam, TResult, TValues> implements IAction<TParam, TResult> {
     protected $: TValues
 
@@ -41,6 +47,9 @@ export abstract class BAction<TParam, TResult, TValues> implements IAction<TPara
     abstract do(param: TParam): TResult;
 }
 
+/**
+ * base class for action accept constructor
+ */
 export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResult> implements IAction<TOuterParam, TOuterResult> {
     protected _inner: IAction<TInnerParam, TInnerResult>;
 
@@ -53,6 +62,9 @@ export abstract class BOuter<TOuterParam, TOuterResult, TInnerParam, TInnerResul
 
 /* ------------------------ */
 
+/**
+ * execute function
+ */
 export class Run<TParam, TResult> implements IAction<TParam, TResult> {
     private _func: (param: TParam) => TResult;
 
@@ -65,6 +77,9 @@ export class Run<TParam, TResult> implements IAction<TParam, TResult> {
     }
 }
 
+/**
+ * execute getting function
+ */
 export class Get<TResult> implements IAction<void, TResult> {
     private _ref: RefReader<TResult> | (() => TResult);
 
@@ -81,6 +96,9 @@ export class Get<TResult> implements IAction<void, TResult> {
     }
 }
 
+/**
+ * execute setting function
+ */
 export class Set<TParam> implements IAction<TParam, void> {
     private _ref: RefWriter<TParam> | ((p: TParam) => void);
 
@@ -97,6 +115,9 @@ export class Set<TParam> implements IAction<TParam, void> {
     }
 }
 
+/**
+ * If isDo is true, execute inner
+ */
 export class IfValid<TParam, TResult> extends BOuter<TParam, TResult | void, TParam, TResult> {
     private readonly _isDo: IAction<void, boolean>;
 
