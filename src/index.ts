@@ -402,8 +402,6 @@ export class Ref<T> {
     }
 }
 
-
-
 /**
  * Context reference
  */
