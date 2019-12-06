@@ -357,6 +357,9 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Sy
 // reference
 /* ######################## */
 
+/**
+ * Read-only context reference
+ */
 export class RefReader<T> {
     get: () => T
 
@@ -365,6 +368,9 @@ export class RefReader<T> {
     }
 }
 
+/**
+ * Write-only context reference
+ */
 export class RefWriter<T> {
     set: (v: T) => void
 
@@ -373,6 +379,9 @@ export class RefWriter<T> {
     }
 }
 
+/**
+ * Context reference
+ */
 export class Ref<T> {
     get: () => T
     set: (v: T) => void
@@ -393,13 +402,20 @@ export class Ref<T> {
     }
 }
 
+
+
 /**
- * Note that you can specify an invalid path
+ * Context reference
  */
 export class RefPath<TParam> extends Ref<TParam> {
     private readonly _context: any
     private readonly _path: string[]
 
+    /**
+     * Note that you can specify an invalid path
+     * @param context Context instance
+     * @param path Context path. Strings separated by "." or array
+     */
     constructor(context: any, path: string | string[]) {
         const get = () => this._get;
         const set = () => this._set;
