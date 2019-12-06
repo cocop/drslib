@@ -10,10 +10,6 @@
             "request": "launch",
             "name": "Test",
             "program": "${workspaceFolder}\\build\\test\\test.js",
-            "args": [],
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ],
             "preLaunchTask": "build",
             "internalConsoleOptions": "openOnSessionStart"
         }
