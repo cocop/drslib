@@ -379,9 +379,23 @@ export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Sy
 /* ######################## */
 
 /**
- * Read-only context reference
+ * Read-only context reference interface
  */
-export class RefReader<T> {
+export interface IRefReader<T> {
+    get: () => T;
+}
+
+/**
+ * Write-only context reference interface
+ */
+export interface IRefWriter<T> {
+    set: (param: T) => void;
+}
+
+/**
+ * Read-only context reference class
+ */
+export class RefReader<T> implements IRefReader<T> {
     get: () => T
 
     constructor(get: () => T) {
@@ -390,9 +404,9 @@ export class RefReader<T> {
 }
 
 /**
- * Write-only context reference
+ * Write-only context reference class
  */
-export class RefWriter<T> {
+export class RefWriter<T> implements IRefWriter<T> {
     set: (v: T) => void
 
     constructor(set: (v: T) => void) {
@@ -401,9 +415,9 @@ export class RefWriter<T> {
 }
 
 /**
- * Context reference
+ * Context reference class
  */
-export class Ref<T> {
+export class Ref<T> implements IRefReader<T>, IRefWriter<T> {
     get: () => T
     set: (v: T) => void
 
@@ -413,20 +427,12 @@ export class Ref<T> {
         this.get = get
         this.set = set
     }
-
-    getReader() {
-        return new RefReader(this.get);
-    }
-
-    getWriter() {
-        return new RefWriter(this.set);
-    }
 }
 
 /**
- * Context reference
+ * Context reference class
  */
-export class RefPath<TParam> extends Ref<TParam> {
+export class RefPath<T> implements IRefReader<T>, IRefWriter<T> {
     private readonly _context: any
     private readonly _path: string[]
 
@@ -436,10 +442,6 @@ export class RefPath<TParam> extends Ref<TParam> {
      * @param path Context path. Strings separated by "." or array
      */
     constructor(context: any, path: string | string[]) {
-        const get = () => this._get;
-        const set = () => this._set;
-        super(get(), set());
-
         this._context = context
         this._path = this._pathToArray(path);
     }
@@ -452,7 +454,7 @@ export class RefPath<TParam> extends Ref<TParam> {
         return path
     }
 
-    private _get(): TParam {
+    get(): T {
         let node = this._context;
 
         for (let i = 0; i < this._path.length; i++) {
@@ -462,7 +464,7 @@ export class RefPath<TParam> extends Ref<TParam> {
         return node
     }
 
-    private _set(value: TParam) {
+    set(value: T) {
         let node = this._context;
 
         for (let i = 0; i < this._path.length - 1; i++) {
