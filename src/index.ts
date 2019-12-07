@@ -310,23 +310,44 @@ abstract class BChainLink<TBottomResult> {
 }
 
 class SyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
+    /**
+     * Create action
+     */
     create(): IAction<TTopParam, TBottomResult> {
         return new RunChainSync(this._chain);
     }
 
+    /**
+     * Set an action that accepts a parameter and returns the next parameter
+     * @param action An action that accepts a parameter and returns the next parameter
+     */
     join<TResult>(action: IAction<TBottomResult, TResult>): SyncChainLink<TTopParam, TResult> {
         return super.join(action);
     }
 
+    /**
+     * Set an action that accepts parameters
+     * @param action Action that accepts parameters
+     */
     pass(action: IAction<TBottomResult, void>): SyncChainLink<TTopParam, TBottomResult> {
         return super.pass(action);
     }
 
+    /**
+     * Sets an asynchronous action that accepts parameters and returns the next parameter  
+     *     Calling this method makes the action created asynchronous
+     * @param action Asynchronous action that accepts a parameter and returns the next parameter
+     */
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): AsyncChainLink<TTopParam, TResult> {
         super.joinWait(action);
         return new AsyncChainLink<TTopParam, TResult>(this._chain);
     }
 
+    /**
+     * Set an asynchronous action that accepts parameters  
+     *     Calling this method makes the action created asynchronous
+     * @param action Asynchronous actions that accept parameters
+     */
     passWait(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
         super.passWait(action);
         return new AsyncChainLink<TTopParam, TBottomResult>(this._chain);
@@ -334,27 +355,50 @@ class SyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> 
 }
 
 class AsyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> {
+    /**
+     * Create an asynchronous action
+     */
     create(): IAction<TTopParam, Promise<TBottomResult>> {
         return new RunChainAsync(this._chain);
     }
 
+    /**
+     * Set an action that accepts parameters
+     * @param action Action that accepts parameters
+     */
     join<TResult>(action: IAction<TBottomResult, TResult>): AsyncChainLink<TTopParam, TResult> {
         return super.join(action);
     }
 
+    /**
+     * Set an action that accepts parameters
+     * @param action Action that accepts parameters
+     */
     pass(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
         return super.pass(action);
     }
 
+    /**
+     * Sets an asynchronous action that accepts parameters and returns the next parameter
+     * @param action Asynchronous action that accepts a parameter and returns the next parameter
+     */
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): AsyncChainLink<TTopParam, TResult> {
         return super.joinWait(action);
     }
 
+    /**
+     * Set an asynchronous action that accepts parameters
+     * @param action Asynchronous actions that accept parameters
+     */
     passWait(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
         return super.passWait(action);
     }
 }
 
+/**
+ * A class that creates an action that pipelines the actions  
+ *     Use in method chain format
+ */
 export class Chain<TParam> extends SyncChainLink<TParam, TParam> {
     constructor() {
         super([]);
