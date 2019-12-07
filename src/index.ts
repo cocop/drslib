@@ -314,11 +314,13 @@ class SyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult> 
         return new RunChainSync(this._chain);
     }
 
-    join: <TResult>(action: IAction<TBottomResult, TResult>) => SyncChainLink<TTopParam, TResult>
-        = super.join;
+    join<TResult>(action: IAction<TBottomResult, TResult>): SyncChainLink<TTopParam, TResult> {
+        return super.join(action);
+    }
 
-    pass: (action: IAction<TBottomResult, void>) => SyncChainLink<TTopParam, TBottomResult>
-        = super.pass;
+    pass(action: IAction<TBottomResult, void>): SyncChainLink<TTopParam, TBottomResult> {
+        return super.pass(action);
+    }
 
     joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): AsyncChainLink<TTopParam, TResult> {
         super.joinWait(action);
@@ -336,17 +338,21 @@ class AsyncChainLink<TTopParam, TBottomResult> extends BChainLink<TBottomResult>
         return new RunChainAsync(this._chain);
     }
 
-    join: <TResult>(action: IAction<TBottomResult, TResult>) => AsyncChainLink<TTopParam, TResult>
-        = super.join;
+    join<TResult>(action: IAction<TBottomResult, TResult>): AsyncChainLink<TTopParam, TResult> {
+        return super.join(action);
+    }
 
-    pass: (action: IAction<TBottomResult, void>) => AsyncChainLink<TTopParam, TBottomResult>
-        = super.pass;
+    pass(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
+        return super.pass(action);
+    }
 
-    joinWait: <TResult>(action: IAction<TBottomResult, Promise<TResult>>) => AsyncChainLink<TTopParam, TResult>
-        = super.joinWait;
+    joinWait<TResult>(action: IAction<TBottomResult, Promise<TResult>>): AsyncChainLink<TTopParam, TResult> {
+        return super.joinWait(action);
+    }
 
-    passWait: (action: IAction<TBottomResult, void>) => AsyncChainLink<TTopParam, TBottomResult>
-        = super.passWait
+    passWait(action: IAction<TBottomResult, void>): AsyncChainLink<TTopParam, TBottomResult> {
+        return super.passWait(action);
+    }
 }
 
 export class Chain<TParam> extends SyncChainLink<TParam, TParam> {
