@@ -136,6 +136,9 @@ export class IfValid<TParam, TResult> extends BOuter<TParam, TResult | void, TPa
 // RunActions
 /* ------------------------ */
 
+/**
+ * Actions that perform multiple actions
+ */
 export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
     protected _list: IAction<TParam, VoidSyncable>[];
 
@@ -150,6 +153,9 @@ export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
     }
 }
 
+/**
+ * An action that executes multiple actions asynchronously
+ */
 export class RunActionsParallel<TParam> extends RunActions<TParam> {
     async do(param: TParam): Promise<void> {
         await Promise.all(
@@ -160,6 +166,9 @@ export class RunActionsParallel<TParam> extends RunActions<TParam> {
     }
 }
 
+/**
+ * Actions that perform ordered actions
+ */
 export class RunActionsOrder<TParam, TResult> implements IAction<TParam, Promise<TResult>> {
     private _previous: IAction<TParam, VoidSyncable>;
     private _executing: IAction<TParam, Syncable<TResult>>;
