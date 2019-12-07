@@ -358,6 +358,9 @@ export class Chain<TParam> extends SyncChainLink<TParam, TParam> {
 // Repetition
 /* ------------------------ */
 
+/**
+ * Action to retry until successful
+ */
 export class Retry extends BOuter<void, Promise<void>, void, Syncable<boolean>>{
     private readonly _retryCount: number;
 
@@ -377,6 +380,9 @@ export class Retry extends BOuter<void, Promise<void>, void, Syncable<boolean>>{
     }
 }
 
+/**
+ * Repeat action until it returns true
+ */
 export class Repetition<TParam> extends BOuter<TParam, Promise<void>, TParam, Syncable<boolean>> {
     async do(param: TParam): Promise<void> {
         while (!await async(this._inner.do(param))) { };
