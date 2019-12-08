@@ -139,26 +139,30 @@ export class IfValid<TParam, TResult> extends BOuter<TParam, TResult | void, TPa
 /**
  * Actions that perform multiple actions
  */
-export class RunActions<TParam> implements IAction<TParam, Promise<void>> {
-    protected _list: IAction<TParam, VoidSyncable>[];
+export class RunActions<TParam, TResult> implements IAction<TParam, Promise<TResult[]>> {
+    protected _list: IAction<TParam, Syncable<TResult>>[];
 
-    constructor(list: IAction<TParam, VoidSyncable>[]) {
+    constructor(list: IAction<TParam, Syncable<TResult>>[]) {
         this._list = list;
     }
 
-    async do(param: TParam): Promise<void> {
+    async do(param: TParam): Promise<TResult[]> {
+        const results: TResult[] = [];
+
         for (const item of this._list) {
-            await async(item.do(param));
+            results.push(await async(item.do(param)));
         }
+
+        return results;
     }
 }
 
 /**
  * An action that executes multiple actions asynchronously
  */
-export class RunActionsParallel<TParam> extends RunActions<TParam> {
-    async do(param: TParam): Promise<void> {
-        await Promise.all(
+export class RunActionsParallel<TParam, TResult> extends RunActions<TParam, TResult> {
+    async do(param: TParam): Promise<TResult[]> {
+        return await Promise.all(
             this._list.map(
                 (i) => async(i.do(param))
             )

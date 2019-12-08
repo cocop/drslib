@@ -18,7 +18,9 @@
     "LICENSE",
     "build/src"
   ],
-  "keywords": [],
+  "keywords": [
+    "Structure-Function"
+  ],
   "license": "Apache-2.0",
   "main": "build/src/index.js",
   "repository": {

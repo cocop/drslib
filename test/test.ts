@@ -111,7 +111,7 @@ describe("IfValid", () => {
 describe("RunActions", () => {
     it("Sync Only", async () => {
         const log: number[] = []
-        const action = new drs.RunActions<void>([
+        const action = new drs.RunActions<void, void>([
             new drs.Run(() => { log.push(1) }),
             new drs.Run(() => { log.push(2) }),
             new drs.Run(() => { log.push(3) }),
@@ -124,7 +124,7 @@ describe("RunActions", () => {
 
     it("Async Only", async () => {
         const log: number[] = []
-        const action = new drs.RunActions<void>([
+        const action = new drs.RunActions<void, void>([
             new drs.Run(async () => { log.push(1) }),
             new drs.Run(async () => { log.push(2) }),
             new drs.Run(async () => { log.push(3) }),
@@ -137,7 +137,7 @@ describe("RunActions", () => {
 
     it("Async, Sync Mixing", async () => {
         const log: number[] = []
-        const action = new drs.RunActions<void>([
+        const action = new drs.RunActions<void, void>([
             new drs.Run(async () => { log.push(1) }),
             new drs.Run(() => { log.push(2) }),
             new drs.Run(async () => { log.push(3) }),
@@ -150,15 +150,14 @@ describe("RunActions", () => {
 
     it("in param", async () => {
         const log: number[] = []
-        const action = new drs.RunActions<number>([
-            new drs.Run(() => { log.push(1) }),
-            new drs.Run((p) => { log.push(p) }),
-            new drs.Run(() => { log.push(3) }),
+        const action = new drs.RunActions<number, number>([
+            new drs.Run(() => log.push(3)),
+            new drs.Run((p) => log.push(p)),
+            new drs.Run(() => log.push(1)),
         ]);
 
-        await action.do(2);
-
-        check(log, [1, 2, 3]);
+        check(await action.do(2), [1, 2, 3]);
+        check(log, [3, 2, 1]);
     });
 });
 
@@ -166,7 +165,7 @@ describe("RunActions", () => {
 describe("RunActionsParallel", () => {
     it("Sync Only", async () => {
         const log: number[] = []
-        const action = new drs.RunActionsParallel<void>([
+        const action = new drs.RunActionsParallel<void, void>([
             new drs.Run(() => { log.push(1) }),
             new drs.Run(() => { log.push(2) }),
             new drs.Run(() => { log.push(3) }),
@@ -179,7 +178,7 @@ describe("RunActionsParallel", () => {
 
     it("Async Only", async () => {
         const log: number[] = []
-        const action = new drs.RunActionsParallel<void>([
+        const action = new drs.RunActionsParallel<void, void>([
             new drs.Run(async () => {
                 await new Promise((e) => setTimeout(e, 100));
                 log.push(1)
@@ -201,7 +200,7 @@ describe("RunActionsParallel", () => {
 
     it("Async, Sync Mixing", async () => {
         const log: number[] = []
-        const action = new drs.RunActionsParallel<void>([
+        const action = new drs.RunActionsParallel<void, void>([
             new drs.Run(async () => {
                 await new Promise((e) => setTimeout(e, 50));
                 log.push(1)
@@ -220,15 +219,14 @@ describe("RunActionsParallel", () => {
 
     it("in param", async () => {
         const log: number[] = []
-        const action = new drs.RunActionsParallel<number>([
-            new drs.Run(() => { log.push(1) }),
-            new drs.Run((p) => { log.push(p) }),
-            new drs.Run(() => { log.push(3) }),
+        const action = new drs.RunActionsParallel<number, number>([
+            new drs.Run(() => log.push(3)),
+            new drs.Run((p) => log.push(p)),
+            new drs.Run(() => log.push(1)),
         ]);
 
-        await action.do(2);
-
-        check(log, [1, 2, 3]);
+        check(await action.do(2), [1, 2, 3]);
+        check(log, [3, 2, 1]);
     });
 });
 
